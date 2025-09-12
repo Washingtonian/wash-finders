@@ -4,18 +4,24 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DoctorProviderResource\Pages;
 use App\Models\Provider;
-use Filament\Forms;
-use Filament\Forms\Form;
+use BackedEnum;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\TextInput;
+use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
 
 class DoctorProviderResource extends Resource
 {
     protected static ?string $model = Provider::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-heart';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-heart';
 
     protected static ?string $navigationLabel = 'Doctors';
 
@@ -23,33 +29,33 @@ class DoctorProviderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Doctors';
 
-    protected static ?string $navigationGroup = 'Providers';
+    protected static UnitEnum|string|null $navigationGroup = 'Providers';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\TextInput::make('provider_id')
+                TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                Forms\Components\TextInput::make('slug')
+                Filament\Schemas\Components\TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                Forms\Components\FileUpload::make('photo')
+                Filament\Schemas\Components\FileUpload::make('photo')
                     ->label('Photo')
                     ->image()
                     ->directory('enhanced_photos/doctors')
                     ->visibility('public'),
-                Forms\Components\TextInput::make('latitude')
+                Filament\Schemas\Components\TextInput::make('latitude')
                     ->label('Latitude')
                     ->disabled()
                     ->helperText('Geocoded latitude coordinate'),
-                Forms\Components\TextInput::make('longitude')
+                Filament\Schemas\Components\TextInput::make('longitude')
                     ->label('Longitude')
                     ->disabled()
                     ->helperText('Geocoded longitude coordinate'),
-                Forms\Components\View::make('filament.components.provider-map')
+                Filament\Schemas\Components\View::make('filament.components.provider-map')
                     ->label('Location Map')
                     ->columnSpanFull()
                     ->viewData(function ($record) {
@@ -74,7 +80,7 @@ class DoctorProviderResource extends Resource
                             'address' => $address,
                         ];
                     }),
-                Forms\Components\KeyValue::make('meta')
+                Filament\Schemas\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -160,12 +166,12 @@ class DoctorProviderResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
@@ -190,7 +196,7 @@ class DoctorProviderResource extends Resource
         ];
     }
 
-    public static function getUrl(string $name = 'index', array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null): string
+    public static function getUrl(?string $name = null, array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {
         $parameters['type'] = 'doctors';
 

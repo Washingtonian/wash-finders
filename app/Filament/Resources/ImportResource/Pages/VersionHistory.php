@@ -13,7 +13,7 @@ class VersionHistory extends ListRecords
 {
     protected static string $resource = ImportResource::class;
 
-    protected static string $view = 'filament.resources.imports.version-history';
+    protected string $view = 'filament.resources.imports.version-history';
 
     public function table(Table $table): Table
     {

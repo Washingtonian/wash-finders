@@ -45,6 +45,20 @@ class ProcessCsv
             $lastProgressLog = 0;
 
             foreach ($records as $record) {
+                // If processing a single provider, skip records that don't match
+                if (isset($payload->single_provider_id)) {
+                    $recordProviderId = $record['id'] ?? $record['provider_id'] ?? null;
+                    if ($recordProviderId !== $payload->single_provider_id) {
+                        continue; // Skip this record
+                    }
+
+                    Log::info('🎯 Found target provider for single refresh', [
+                        'target_provider_id' => $payload->single_provider_id,
+                        'found_provider_id' => $recordProviderId,
+                        'import_id' => $payload->import_id ?? 'unknown',
+                    ]);
+                }
+
                 if ($processed >= $maxRecords) {
                     Log::info('⏹️ Reached max records limit', [
                         'import_id' => $payload->import_id ?? 'unknown',

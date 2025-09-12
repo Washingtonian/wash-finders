@@ -17,16 +17,24 @@ class AddLocations
         return $next($record);
     }
 
-    private function getFormattedGeolocations(array $record): array
+    private function getFormattedGeolocations($record): array
     {
         return collect($this->getGeolocations($record))
             ->reject(fn ($location) => is_null($location['address']) && is_null($location['lat']) && is_null($location['lng']) && empty($location['phone']))
-            ->map(fn ($location) => array_filter($location))
+            ->map(function ($location) {
+                if (! is_array($location)) {
+                    return $location;
+                }
+
+                return array_filter($location, function ($value) {
+                    return $value !== null && $value !== '';
+                });
+            })
             ->values()
             ->toArray();
     }
 
-    private function getGeolocations(array $record): array
+    private function getGeolocations($record): array
     {
         return Cache::remember('geolocations_'.$record['id'], now()->addMinutes(self::CACHE_DURATION), function () use ($record) {
             return collect(['a', 'b', 'c', 'd'])
@@ -60,7 +68,7 @@ class AddLocations
         return Cache::remember($cacheKey, now()->addMinutes(self::CACHE_DURATION), fn () => $this->geocodeAddress($address));
     }
 
-    private function buildAddress(array $record, string $location): array
+    private function buildAddress($record, string $location): array
     {
         $addressParts = ['street-1', 'street-2', 'city', 'state', 'zip', 'country'];
         $address = implode(', ', array_filter(array_map(fn ($part) => $record["{$location}-{$part}"] ?? '', $addressParts)));

@@ -4,20 +4,35 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DentistProviderResource\Pages;
 use App\Models\Provider;
-use Filament\Forms;
-use Filament\Forms\Form;
+use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ViewField;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Storage;
+use UnitEnum;
 
 class DentistProviderResource extends Resource
 {
     protected static ?string $model = Provider::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-user-circle';
 
     protected static ?string $navigationLabel = 'Dentists';
 
@@ -25,114 +40,114 @@ class DentistProviderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Dentists';
 
-    protected static ?string $navigationGroup = 'Providers';
+    protected static UnitEnum|string|null $navigationGroup = 'Providers';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Section::make('Basic Information')
                     ->schema([
-                        Forms\Components\TextInput::make('provider_id')
+                        TextInput::make('provider_id')
                             ->maxLength(255)
                             ->placeholder('External provider ID'),
-                        Forms\Components\TextInput::make('slug')
+                        TextInput::make('slug')
                             ->maxLength(255)
                             ->placeholder('URL-friendly slug')
                             ->required(),
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Name')
                             ->maxLength(255)
                             ->placeholder('Dentist name'),
-                        Forms\Components\TextInput::make('business_name')
+                        TextInput::make('business_name')
                             ->label('Business Name')
                             ->maxLength(255)
                             ->placeholder('Practice or business name'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Contact Information')
+                Section::make('Contact Information')
                     ->schema([
-                        Forms\Components\TextInput::make('website')
+                        TextInput::make('website')
                             ->label('Website')
                             ->url()
                             ->placeholder('https://example.com'),
-                        Forms\Components\TextInput::make('email')
+                        TextInput::make('email')
                             ->label('Email')
                             ->email()
                             ->placeholder('dentist@example.com'),
-                        Forms\Components\TextInput::make('phone')
+                        TextInput::make('phone')
                             ->label('Phone')
                             ->tel()
                             ->placeholder('(555) 123-4567'),
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('Social Media')
+                Section::make('Social Media')
                     ->schema([
-                        Forms\Components\TextInput::make('facebook_url')
+                        TextInput::make('facebook_url')
                             ->label('Facebook URL')
                             ->url()
                             ->placeholder('https://facebook.com/username'),
-                        Forms\Components\TextInput::make('twitter_url')
+                        TextInput::make('twitter_url')
                             ->label('Twitter URL')
                             ->url()
                             ->placeholder('https://twitter.com/username'),
-                        Forms\Components\TextInput::make('instagram_url')
+                        TextInput::make('instagram_url')
                             ->label('Instagram URL')
                             ->url()
                             ->placeholder('https://instagram.com/username'),
-                        Forms\Components\TextInput::make('linkedin_url')
+                        TextInput::make('linkedin_url')
                             ->label('LinkedIn URL')
                             ->url()
                             ->placeholder('https://linkedin.com/in/username'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Professional Information')
+                Section::make('Professional Information')
                     ->schema([
-                        Forms\Components\TextInput::make('specialty')
+                        TextInput::make('specialty')
                             ->label('Primary Specialty')
                             ->maxLength(255)
                             ->placeholder('General Dentistry, Orthodontics, etc.'),
-                        Forms\Components\Textarea::make('specialties')
+                        Textarea::make('specialties')
                             ->label('All Specialties')
                             ->placeholder('List all specialties, one per line')
                             ->rows(3),
-                        Forms\Components\Toggle::make('best_of_washingtonian')
+                        Toggle::make('best_of_washingtonian')
                             ->label('Best of Washingtonian')
                             ->helperText('Featured in Best of Washingtonian'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Location & Address')
+                Section::make('Location & Address')
                     ->schema([
-                        Forms\Components\TextInput::make('address_street')
+                        TextInput::make('address_street')
                             ->label('Street Address')
                             ->placeholder('123 Main Street'),
-                        Forms\Components\TextInput::make('address_city')
+                        TextInput::make('address_city')
                             ->label('City')
                             ->placeholder('Washington'),
-                        Forms\Components\TextInput::make('address_state')
+                        TextInput::make('address_state')
                             ->label('State')
                             ->placeholder('DC'),
-                        Forms\Components\TextInput::make('address_zip')
+                        TextInput::make('address_zip')
                             ->label('ZIP Code')
                             ->placeholder('20001'),
-                        Forms\Components\TextInput::make('latitude')
+                        TextInput::make('latitude')
                             ->label('Latitude')
                             ->disabled()
                             ->helperText('Geocoded latitude coordinate'),
-                        Forms\Components\TextInput::make('longitude')
+                        TextInput::make('longitude')
                             ->label('Longitude')
                             ->disabled()
                             ->helperText('Geocoded longitude coordinate'),
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('Images & Media')
+                Section::make('Images & Media')
                     ->schema([
-                        Forms\Components\FileUpload::make('photo')
+                        FileUpload::make('photo')
                             ->label('Enhanced Photo')
                             ->image()
                             ->directory('photos/dentists')
@@ -144,7 +159,7 @@ class DentistProviderResource extends Resource
                                     $record->save();
                                 }
                             }),
-                        Forms\Components\FileUpload::make('additional_images')
+                        FileUpload::make('additional_images')
                             ->label('Additional Images')
                             ->image()
                             ->multiple()
@@ -185,13 +200,13 @@ class DentistProviderResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Content & Profile')
+                Section::make('Content & Profile')
                     ->schema([
-                        Forms\Components\RichEditor::make('enhanced_profile_text')
+                        RichEditor::make('enhanced_profile_text')
                             ->label('Enhanced Profile Text')
                             ->columnSpanFull()
                             ->helperText('Rich text content for the dentist profile'),
-                        Forms\Components\TextInput::make('enhanced_profile_text_path')
+                        TextInput::make('enhanced_profile_text_path')
                             ->label('RTF File Path')
                             ->disabled()
                             ->helperText('Path to the downloaded RTF file')
@@ -204,17 +219,17 @@ class DentistProviderResource extends Resource
                             }),
                     ]),
 
-                Forms\Components\Section::make('Additional Data')
+                Section::make('Additional Data')
                     ->schema([
-                        Forms\Components\KeyValue::make('additional_data')
+                        KeyValue::make('additional_data')
                             ->keyLabel('Key')
                             ->valueLabel('Value')
                             ->helperText('Additional metadata fields'),
                     ]),
 
-                Forms\Components\Section::make('Location Map')
+                Section::make('Location Map')
                     ->schema([
-                        Forms\Components\ViewField::make('map')
+                        ViewField::make('map')
                             ->label('Location Map')
                             ->view('filament.components.provider-map-simple')
                             ->viewData(function ($record) {
@@ -259,7 +274,7 @@ class DentistProviderResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\KeyValue::make('meta')
+                KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -517,14 +532,14 @@ class DentistProviderResource extends Resource
                     ),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

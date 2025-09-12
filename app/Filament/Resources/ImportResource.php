@@ -6,20 +6,23 @@ use App\Filament\Resources\ImportResource\Pages;
 use App\Jobs\ProcessImportJob;
 use App\Models\Import;
 use App\Models\Provider;
+use BackedEnum;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 class ImportResource extends Resource
 {
     protected static ?string $model = Import::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-arrow-down';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-document-arrow-down';
 
     protected static ?string $navigationLabel = 'Import Management';
 
@@ -27,44 +30,44 @@ class ImportResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Imports';
 
-    protected static ?string $navigationGroup = 'Manage';
+    protected static UnitEnum|string|null $navigationGroup = 'Manage';
 
     protected static ?int $navigationSort = 2;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Filament\Schemas\Components\Section::make('Basic Information')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        Filament\Schemas\Components\TextInput::make('name')
                             ->required()
                             ->maxLength(255)
                             ->placeholder('e.g., Dentists (2019+)'),
-                        Forms\Components\Select::make('provider_type')
+                        Filament\Schemas\Components\Select::make('provider_type')
                             ->required()
                             ->options(Provider::getAvailableTypes())
                             ->searchable()
                             ->placeholder('Select provider type'),
-                        Forms\Components\Textarea::make('description')
+                        Filament\Schemas\Components\Textarea::make('description')
                             ->placeholder('Optional description of this import')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('CSV Configuration')
+                Filament\Schemas\Components\Section::make('CSV Configuration')
                     ->schema([
-                        Forms\Components\TextInput::make('csv_url')
+                        Filament\Schemas\Components\TextInput::make('csv_url')
                             ->required()
                             ->url()
                             ->placeholder('https://docs.google.com/spreadsheets/...')
                             ->helperText('Google Sheets URL or direct CSV download link'),
-                        Forms\Components\TextInput::make('version')
+                        Filament\Schemas\Components\TextInput::make('version')
                             ->required()
                             ->default('1.0')
                             ->placeholder('1.0, 1.1, 2.0, etc.')
                             ->helperText('Version number for tracking different iterations'),
-                        Forms\Components\Toggle::make('is_current_version')
+                        Filament\Schemas\Components\Toggle::make('is_current_version')
                             ->label('Set as Current Version')
                             ->helperText('Only one version per provider type can be current')
                             ->live()
@@ -73,38 +76,38 @@ class ImportResource extends Resource
                                     $set('is_active', true);
                                 }
                             }),
-                        Forms\Components\Toggle::make('is_active')
+                        Filament\Schemas\Components\Toggle::make('is_active')
                             ->label('Active')
                             ->helperText('Inactive imports cannot be run'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Import Settings')
+                Filament\Schemas\Components\Section::make('Import Settings')
                     ->schema([
-                        Forms\Components\KeyValue::make('import_settings')
+                        Filament\Schemas\Components\KeyValue::make('import_settings')
                             ->keyLabel('Setting')
                             ->valueLabel('Value')
                             ->columnSpanFull()
                             ->helperText('Additional import configuration options'),
-                        Forms\Components\KeyValue::make('mapping_config')
+                        Filament\Schemas\Components\KeyValue::make('mapping_config')
                             ->keyLabel('CSV Column')
                             ->valueLabel('Provider Field')
                             ->columnSpanFull()
                             ->helperText('Map CSV columns to provider fields'),
                     ]),
 
-                Forms\Components\Section::make('Scheduling')
+                Filament\Schemas\Components\Section::make('Scheduling')
                     ->description('Configure automatic import scheduling')
                     ->schema([
-                        Forms\Components\Toggle::make('schedule_enabled')
+                        Filament\Schemas\Components\Toggle::make('schedule_enabled')
                             ->label('Enable Scheduling')
                             ->helperText('Turn on automatic scheduling for this import')
                             ->live()
                             ->columnSpanFull(),
 
-                        Forms\Components\Grid::make(2)
+                        Filament\Schemas\Components\Grid::make(2)
                             ->schema([
-                                Forms\Components\Select::make('schedule_frequency')
+                                Filament\Schemas\Components\Select::make('schedule_frequency')
                                     ->label('Schedule Frequency')
                                     ->options([
                                         'daily' => 'Daily',
@@ -116,7 +119,7 @@ class ImportResource extends Resource
                                     ->default('weekly')
                                     ->live(),
 
-                                Forms\Components\TimePicker::make('schedule_time')
+                                Filament\Schemas\Components\TimePicker::make('schedule_time')
                                     ->label('Run Time')
                                     ->visible(fn (Forms\Get $get): bool => $get('schedule_enabled'))
                                     ->required(fn (Forms\Get $get): bool => $get('schedule_enabled'))
@@ -125,7 +128,7 @@ class ImportResource extends Resource
                                     ->format('H:i'),
                             ]),
 
-                        Forms\Components\CheckboxList::make('schedule_days')
+                        Filament\Schemas\Components\CheckboxList::make('schedule_days')
                             ->label('Days of Week')
                             ->options([
                                 'monday' => 'Monday',
@@ -328,7 +331,7 @@ class ImportResource extends Resource
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()
                         ->label('View Details'),
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->label('Edit Configuration'),
                     Tables\Actions\Action::make('view_versions')
                         ->label('View All Versions')
@@ -349,7 +352,7 @@ class ImportResource extends Resource
                         ->label('View History')
                         ->icon('heroicon-o-document-text')
                         ->url(fn (Import $record): string => route('filament.admin.resources.imports.history', $record)),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label('Delete Import'),
                 ])
                     ->label('More Actions')
@@ -359,10 +362,10 @@ class ImportResource extends Resource
                     ->button(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ])
             ->defaultSort('provider_type', 'asc')

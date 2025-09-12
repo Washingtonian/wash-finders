@@ -4,18 +4,20 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\LawyerProviderResource\Pages;
 use App\Models\Provider;
-use Filament\Forms;
-use Filament\Forms\Form;
+use BackedEnum;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
 
 class LawyerProviderResource extends Resource
 {
     protected static ?string $model = Provider::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-scale';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-scale';
 
     protected static ?string $navigationLabel = 'Lawyers';
 
@@ -23,25 +25,25 @@ class LawyerProviderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Lawyers';
 
-    protected static ?string $navigationGroup = 'Providers';
+    protected static UnitEnum|string|null $navigationGroup = 'Providers';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\TextInput::make('provider_id')
+                Filament\Schemas\Components\TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                Forms\Components\TextInput::make('slug')
+                Filament\Schemas\Components\TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                Forms\Components\FileUpload::make('photo')
+                Filament\Schemas\Components\FileUpload::make('photo')
                     ->label('Photo')
                     ->image()
                     ->directory('enhanced_photos/lawyers')
                     ->visibility('public'),
-                Forms\Components\KeyValue::make('meta')
+                Filament\Schemas\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -127,12 +129,12 @@ class LawyerProviderResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
@@ -157,7 +159,7 @@ class LawyerProviderResource extends Resource
         ];
     }
 
-    public static function getUrl(string $name = 'index', array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null): string
+    public static function getUrl(?string $name = null, array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {
         $parameters['type'] = 'lawyers';
 

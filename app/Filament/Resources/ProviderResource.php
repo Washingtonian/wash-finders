@@ -4,21 +4,24 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProviderResource\Pages;
 use App\Models\Provider;
+use BackedEnum;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use UnitEnum;
 
 class ProviderResource extends Resource
 {
     protected static ?string $model = Provider::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
 
     protected static ?string $navigationLabel = 'All Providers';
 
@@ -26,7 +29,7 @@ class ProviderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Providers';
 
-    protected static ?string $navigationGroup = 'Manage';
+    protected static UnitEnum|string|null $navigationGroup = 'Manage';
 
     protected static ?int $navigationSort = 1;
 
@@ -38,25 +41,25 @@ class ProviderResource extends Resource
         return [];
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Select::make('type')
+                Filament\Schemas\Components\Select::make('type')
                     ->required()
                     ->options(Provider::getAvailableTypes())
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('slug', Str::slug($state.'-'.now()->timestamp))
                     ),
-                Forms\Components\TextInput::make('provider_id')
+                Filament\Schemas\Components\TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                Forms\Components\TextInput::make('slug')
+                Filament\Schemas\Components\TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                Forms\Components\KeyValue::make('meta')
+                Filament\Schemas\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -202,7 +205,7 @@ class ProviderResource extends Resource
                     ->icon('heroicon-o-play')
                     ->color('success')
                     ->form([
-                        Forms\Components\Select::make('import_id')
+                        Filament\Schemas\Components\Select::make('import_id')
                             ->label('Select Import to Run')
                             ->options(function () {
                                 return \App\Models\Import::active()
@@ -215,7 +218,7 @@ class ProviderResource extends Resource
                             ->required()
                             ->searchable()
                             ->placeholder('Choose an import to run'),
-                        Forms\Components\Toggle::make('force_run')
+                        Filament\Schemas\Components\Toggle::make('force_run')
                             ->label('Force Run (even if already running)')
                             ->default(false)
                             ->helperText('Check this to run even if the import is currently running'),
@@ -419,14 +422,14 @@ class ProviderResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -442,7 +445,7 @@ class ProviderResource extends Resource
         ];
     }
 
-    public static function getUrl(string $name = 'index', array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?Model $tenant = null): string
+    public static function getUrl(?string $name = null, array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {
         // Preserve the 'type' parameter when generating URLs
         $type = request()->get('type');

@@ -4,8 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Import;
 use App\Models\ImportHistory;
-use App\Pipelines\DownloadCsv;
-use App\Pipelines\ProcessCsv;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Pipeline\Pipeline;
@@ -55,6 +53,8 @@ class ProcessImportJob implements ShouldQueue
                 'history_id' => $history->id,
             ];
 
+            dd($payload);
+
             Log::info('📋 Pipeline payload created', [
                 'import_id' => $this->import->id,
                 'payload' => [
@@ -69,8 +69,10 @@ class ProcessImportJob implements ShouldQueue
             $result = app(Pipeline::class)
                 ->send($payload)
                 ->through([
-                    DownloadCsv::class,
-                    ProcessCsv::class,
+                    \App\Pipelines\AddLocations::class,
+                    \App\Pipelines\GeocodeAddress::class,
+                    \App\Pipelines\DownloadCsv::class,
+                    \App\Pipelines\ProcessCsv::class,
                 ])
                 ->thenReturn();
 

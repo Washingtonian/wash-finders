@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ImportResource\Pages;
 use App\Filament\Resources\ImportResource;
 use Filament\Actions;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Pages\ManageRelatedRecords;
 
 class ImportScheduling extends ManageRelatedRecords
@@ -14,22 +13,22 @@ class ImportScheduling extends ManageRelatedRecords
 
     protected static string $relationship = 'importHistories';
 
-    public function form(Form $form): Form
+    public function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Schedule Configuration')
+                Filament\Schemas\Components\Section::make('Schedule Configuration')
                     ->description('Configure when and how often this import should run automatically')
                     ->schema([
-                        Forms\Components\Toggle::make('schedule_enabled')
+                        Filament\Schemas\Components\Toggle::make('schedule_enabled')
                             ->label('Enable Scheduling')
                             ->helperText('Turn on automatic scheduling for this import')
                             ->live()
                             ->columnSpanFull(),
 
-                        Forms\Components\Grid::make(2)
+                        Filament\Schemas\Components\Grid::make(2)
                             ->schema([
-                                Forms\Components\Select::make('schedule_frequency')
+                                Filament\Schemas\Components\Select::make('schedule_frequency')
                                     ->label('Schedule Frequency')
                                     ->options([
                                         'daily' => 'Daily',
@@ -41,7 +40,7 @@ class ImportScheduling extends ManageRelatedRecords
                                     ->default('weekly')
                                     ->live(),
 
-                                Forms\Components\TimePicker::make('schedule_time')
+                                Filament\Schemas\Components\TimePicker::make('schedule_time')
                                     ->label('Run Time')
                                     ->visible(fn (Forms\Get $get): bool => $get('schedule_enabled'))
                                     ->required(fn (Forms\Get $get): bool => $get('schedule_enabled'))
@@ -50,7 +49,7 @@ class ImportScheduling extends ManageRelatedRecords
                                     ->format('H:i'),
                             ]),
 
-                        Forms\Components\CheckboxList::make('schedule_days')
+                        Filament\Schemas\Components\CheckboxList::make('schedule_days')
                             ->label('Days of Week')
                             ->options([
                                 'monday' => 'Monday',
