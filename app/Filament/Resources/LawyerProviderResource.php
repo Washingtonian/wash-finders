@@ -5,10 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LawyerProviderResource\Pages;
 use App\Models\Provider;
 use BackedEnum;
+use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
@@ -130,7 +130,7 @@ class LawyerProviderResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

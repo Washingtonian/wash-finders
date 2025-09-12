@@ -5,10 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
@@ -97,7 +97,7 @@ class UserResource extends Resource
                     ->label('Email Not Verified'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Filament\Actions\ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

@@ -5,11 +5,11 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ProviderResource\Pages;
 use App\Models\Provider;
 use BackedEnum;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -81,7 +81,7 @@ class ProviderResource extends Resource
             ->persistSortInSession()
             ->persistSearchInSession()
             ->headerActions([
-                Tables\Actions\Action::make('import_status')
+                Filament\Actions\Action::make('import_status')
                     ->label(function () {
                         $runningCount = \App\Models\Import::where('last_run_status', 'running')->count();
                         $completedCount = \App\Models\Import::where('last_run_status', 'completed')->count();
@@ -200,7 +200,7 @@ class ProviderResource extends Resource
                     ->disabled()
                     ->extraAttributes(['class' => 'cursor-default']),
 
-                Tables\Actions\Action::make('run_imports')
+                Filament\Actions\Action::make('run_imports')
                     ->label('Run Imports')
                     ->icon('heroicon-o-play')
                     ->color('success')
@@ -266,7 +266,7 @@ class ProviderResource extends Resource
                     ->modalSubmitActionLabel('Start Import')
                     ->visible(fn () => \App\Models\Import::active()->count() > 0),
 
-                Tables\Actions\Action::make('run_current_type_import')
+                Filament\Actions\Action::make('run_current_type_import')
                     ->label(function () {
                         $type = request()->get('type');
                         if (! $type) {
@@ -421,7 +421,7 @@ class ProviderResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Filament\Actions\ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

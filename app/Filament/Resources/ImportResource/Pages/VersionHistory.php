@@ -61,9 +61,9 @@ class VersionHistory extends ListRecords
                     ->sortable(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('set_current')
+                Filament\Actions\ViewAction::make(),
+                Filament\Actions\EditAction::make(),
+                Filament\Actions\Action::make('set_current')
                     ->label('Set as Current')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
@@ -77,8 +77,8 @@ class VersionHistory extends ListRecords
                     ->modalSubmitActionLabel('Set Current'),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Filament\Actions\BulkActionGroup::make([
+                    Filament\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

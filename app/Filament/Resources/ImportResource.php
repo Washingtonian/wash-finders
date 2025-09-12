@@ -7,11 +7,11 @@ use App\Jobs\ProcessImportJob;
 use App\Models\Import;
 use App\Models\Provider;
 use BackedEnum;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -286,7 +286,7 @@ class ImportResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\Action::make('run_import')
+                Filament\Actions\Action::make('run_import')
                     ->label('Run Import')
                     ->icon('heroicon-o-play')
                     ->color('success')
@@ -313,7 +313,7 @@ class ImportResource extends Resource
                     ->modalDescription(fn (Import $record): string => "Are you sure you want to run the import for {$record->name}?")
                     ->modalSubmitActionLabel('Run Import'),
 
-                Tables\Actions\Action::make('cancel_import')
+                Filament\Actions\Action::make('cancel_import')
                     ->label('Cancel')
                     ->icon('heroicon-o-stop')
                     ->color('danger')
@@ -328,12 +328,12 @@ class ImportResource extends Resource
                     ->modalDescription('Are you sure you want to cancel the running import?')
                     ->modalSubmitActionLabel('Cancel Import'),
 
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make()
+                Filament\Actions\ActionGroup::make([
+                    Filament\Actions\ViewAction::make()
                         ->label('View Details'),
                     EditAction::make()
                         ->label('Edit Configuration'),
-                    Tables\Actions\Action::make('view_versions')
+                    Filament\Actions\Action::make('view_versions')
                         ->label('View All Versions')
                         ->icon('heroicon-o-code-bracket')
                         ->color('info')
@@ -344,11 +344,11 @@ class ImportResource extends Resource
                                 ],
                             ]);
                         }),
-                    Tables\Actions\Action::make('scheduling_options')
+                    Filament\Actions\Action::make('scheduling_options')
                         ->label('Scheduling Options')
                         ->icon('heroicon-o-clock')
                         ->url(fn (Import $record): string => route('filament.admin.resources.imports.scheduling', $record)),
-                    Tables\Actions\Action::make('history_logs')
+                    Filament\Actions\Action::make('history_logs')
                         ->label('View History')
                         ->icon('heroicon-o-document-text')
                         ->url(fn (Import $record): string => route('filament.admin.resources.imports.history', $record)),
