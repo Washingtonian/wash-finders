@@ -122,6 +122,7 @@ class ProcessCsv
                 FormatRecord::class,
                 AddLocations::class,
                 DownloadPhoto::class,
+                DownloadRtf::class,
                 CleanRecord::class,
                 UpdateRecord::class,
             ])

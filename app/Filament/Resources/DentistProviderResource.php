@@ -42,28 +42,26 @@ class DentistProviderResource extends Resource
                     ->image()
                     ->directory('enhanced_photos/dentists')
                     ->visibility('public')
-                    ->getUploadedFileUrlUsing(function ($state, $record) {
-                        if ($state) {
-                            return Storage::url($state);
-                        }
-                        if ($record && $record->meta['enhanced_photo_path']) {
-                            $path = ltrim($record->meta['enhanced_photo_path'], '/');
-                            if (!str_starts_with($path, 'storage/')) {
-                                $path = 'storage/' . ltrim($path, 'storage/');
-                            }
-                            return url($path);
-                        }
-                        return null;
-                    })
-                    ->getUploadedFileNameForStorageUsing(function ($file) {
-                        return 'enhanced_photos/dentists/' . $file->getClientOriginalName();
-                    })
+                    ->disk('public')
                     ->afterStateUpdated(function ($state, $record) {
                         if ($state && $record) {
-                            $record->meta['enhanced_photo_path'] = '/storage/' . $state;
+                            $record->meta['enhanced_photo_path'] = '/storage/'.$state;
                             $record->save();
                         }
                     }),
+                Forms\Components\RichEditor::make('enhanced_profile_text')
+                    ->label('Enhanced Profile Text')
+                    ->columnSpanFull()
+                    ->helperText('Rich text content for the dentist profile'),
+                Forms\Components\TextInput::make('enhanced_profile_text_path')
+                    ->label('RTF File Path')
+                    ->disabled()
+                    ->helperText('Path to the downloaded RTF file'),
+                Forms\Components\Textarea::make('bio')
+                    ->label('Bio')
+                    ->rows(4)
+                    ->columnSpanFull()
+                    ->helperText('Short biography or description'),
                 Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
