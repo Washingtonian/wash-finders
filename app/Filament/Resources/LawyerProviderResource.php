@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LawyerProviderResource\Pages;
 use App\Models\Provider;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -130,7 +132,7 @@ class LawyerProviderResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                Filament\Actions\DeleteAction::make(),
+                \Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
