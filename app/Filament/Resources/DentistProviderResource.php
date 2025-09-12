@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class DentistProviderResource extends Resource
 {
@@ -30,89 +31,239 @@ class DentistProviderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('provider_id')
-                    ->maxLength(255)
-                    ->placeholder('External provider ID'),
-                Forms\Components\TextInput::make('slug')
-                    ->maxLength(255)
-                    ->placeholder('URL-friendly slug')
-                    ->required(),
-                Forms\Components\FileUpload::make('photo')
-                    ->label('Photo')
-                    ->image()
-                    ->directory('enhanced_photos/dentists')
-                    ->visibility('public')
-                    ->disk('public')
-                    ->afterStateUpdated(function ($state, $record) {
-                        if ($state && $record) {
-                            $record->meta['enhanced_photo_path'] = '/storage/'.$state;
-                            $record->save();
-                        }
-                    }),
-                Forms\Components\RichEditor::make('enhanced_profile_text')
-                    ->label('Enhanced Profile Text')
-                    ->columnSpanFull()
-                    ->helperText('Rich text content for the dentist profile'),
-                Forms\Components\TextInput::make('enhanced_profile_text_path')
-                    ->label('RTF File Path')
-                    ->disabled()
-                    ->helperText('Path to the downloaded RTF file'),
-                Forms\Components\TextInput::make('latitude')
-                    ->label('Latitude')
-                    ->disabled()
-                    ->helperText('Geocoded latitude coordinate'),
-                Forms\Components\TextInput::make('longitude')
-                    ->label('Longitude')
-                    ->disabled()
-                    ->helperText('Geocoded longitude coordinate'),
-                Forms\Components\ViewField::make('map')
-                    ->label('Location Map')
-                    ->view('filament.components.provider-map-simple')
-                    ->viewData(function ($record) {
-                        if (! $record) {
-                            return [
-                                'latitude' => null,
-                                'longitude' => null,
-                                'address' => 'No record available',
-                                'mapId' => 'map-no-record',
-                            ];
-                        }
+                Forms\Components\Section::make('Basic Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('provider_id')
+                            ->maxLength(255)
+                            ->placeholder('External provider ID'),
+                        Forms\Components\TextInput::make('slug')
+                            ->maxLength(255)
+                            ->placeholder('URL-friendly slug')
+                            ->required(),
+                        Forms\Components\TextInput::make('title')
+                            ->label('Name')
+                            ->maxLength(255)
+                            ->placeholder('Dentist name'),
+                        Forms\Components\TextInput::make('business_name')
+                            ->label('Business Name')
+                            ->maxLength(255)
+                            ->placeholder('Practice or business name'),
+                    ])
+                    ->columns(2),
 
-                        $latitude = $record->meta['latitude'] ?? null;
-                        $longitude = $record->meta['longitude'] ?? null;
+                Forms\Components\Section::make('Contact Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('website')
+                            ->label('Website')
+                            ->url()
+                            ->placeholder('https://example.com'),
+                        Forms\Components\TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->placeholder('dentist@example.com'),
+                        Forms\Components\TextInput::make('phone')
+                            ->label('Phone')
+                            ->tel()
+                            ->placeholder('(555) 123-4567'),
+                    ])
+                    ->columns(3),
 
-                        if (! $latitude || ! $longitude) {
-                            return [
-                                'latitude' => null,
-                                'longitude' => null,
-                                'address' => 'No location data available - address geocoding required',
-                                'mapId' => 'map-no-coords',
-                            ];
-                        }
+                Forms\Components\Section::make('Social Media')
+                    ->schema([
+                        Forms\Components\TextInput::make('facebook_url')
+                            ->label('Facebook URL')
+                            ->url()
+                            ->placeholder('https://facebook.com/username'),
+                        Forms\Components\TextInput::make('twitter_url')
+                            ->label('Twitter URL')
+                            ->url()
+                            ->placeholder('https://twitter.com/username'),
+                        Forms\Components\TextInput::make('instagram_url')
+                            ->label('Instagram URL')
+                            ->url()
+                            ->placeholder('https://instagram.com/username'),
+                        Forms\Components\TextInput::make('linkedin_url')
+                            ->label('LinkedIn URL')
+                            ->url()
+                            ->placeholder('https://linkedin.com/in/username'),
+                    ])
+                    ->columns(2),
 
-                        $street = $record->meta['address-street'] ?? '';
-                        $city = $record->meta['address-city'] ?? '';
-                        $state = $record->meta['address-state'] ?? '';
-                        $zip = $record->meta['address-zip'] ?? '';
+                Forms\Components\Section::make('Professional Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('specialty')
+                            ->label('Primary Specialty')
+                            ->maxLength(255)
+                            ->placeholder('General Dentistry, Orthodontics, etc.'),
+                        Forms\Components\Textarea::make('specialties')
+                            ->label('All Specialties')
+                            ->placeholder('List all specialties, one per line')
+                            ->rows(3),
+                        Forms\Components\Toggle::make('best_of_washingtonian')
+                            ->label('Best of Washingtonian')
+                            ->helperText('Featured in Best of Washingtonian'),
+                    ])
+                    ->columns(2),
 
-                        $address = trim($street).' '.trim($city).' '.trim($state);
-                        if (! empty($zip)) {
-                            $address .= ' '.trim($zip);
-                        }
+                Forms\Components\Section::make('Location & Address')
+                    ->schema([
+                        Forms\Components\TextInput::make('address_street')
+                            ->label('Street Address')
+                            ->placeholder('123 Main Street'),
+                        Forms\Components\TextInput::make('address_city')
+                            ->label('City')
+                            ->placeholder('Washington'),
+                        Forms\Components\TextInput::make('address_state')
+                            ->label('State')
+                            ->placeholder('DC'),
+                        Forms\Components\TextInput::make('address_zip')
+                            ->label('ZIP Code')
+                            ->placeholder('20001'),
+                        Forms\Components\TextInput::make('latitude')
+                            ->label('Latitude')
+                            ->disabled()
+                            ->helperText('Geocoded latitude coordinate'),
+                        Forms\Components\TextInput::make('longitude')
+                            ->label('Longitude')
+                            ->disabled()
+                            ->helperText('Geocoded longitude coordinate'),
+                    ])
+                    ->columns(3),
 
-                        return [
-                            'latitude' => $latitude,
-                            'longitude' => $longitude,
-                            'address' => $address,
-                            'mapId' => 'map-'.$record->id,
-                        ];
-                    })
-                    ->columnSpanFull(),
+                Forms\Components\Section::make('Images & Media')
+                    ->schema([
+                        Forms\Components\FileUpload::make('photo')
+                            ->label('Enhanced Photo')
+                            ->image()
+                            ->directory('photos/dentists')
+                            ->visibility('public')
+                            ->disk('public')
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($state && $record) {
+                                    $record->meta['enhanced_photo_path'] = '/storage/'.$state;
+                                    $record->save();
+                                }
+                            }),
+                        Forms\Components\FileUpload::make('additional_images')
+                            ->label('Additional Images')
+                            ->image()
+                            ->multiple()
+                            ->directory('enhanced_photos/dentists')
+                            ->visibility('public')
+                            ->disk('public')
+                            ->default(function ($record) {
+                                if ($record && isset($record->meta['extra-enhanced-photo-filenames'])) {
+                                    $filenames = explode(',', $record->meta['extra-enhanced-photo-filenames']);
+                                    $paths = [];
+                                    foreach ($filenames as $filename) {
+                                        $filename = trim($filename);
+                                        if (! empty($filename)) {
+                                            $fullPath = 'enhanced_photos/dentists/'.$filename;
+                                            // Check if file actually exists
+                                            if (Storage::disk('public')->exists($fullPath)) {
+                                                $paths[] = $fullPath;
+                                            }
+                                        }
+                                    }
+
+                                    return $paths;
+                                }
+
+                                return [];
+                            })
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($record && $state) {
+                                    $filenames = [];
+                                    foreach ($state as $path) {
+                                        $filename = basename($path);
+                                        $filenames[] = $filename;
+                                    }
+                                    $record->meta['extra-enhanced-photo-filenames'] = implode(',', $filenames);
+                                    $record->save();
+                                }
+                            }),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Content & Profile')
+                    ->schema([
+                        Forms\Components\RichEditor::make('enhanced_profile_text')
+                            ->label('Enhanced Profile Text')
+                            ->columnSpanFull()
+                            ->helperText('Rich text content for the dentist profile'),
+                        Forms\Components\TextInput::make('enhanced_profile_text_path')
+                            ->label('RTF File Path')
+                            ->disabled()
+                            ->helperText('Path to the downloaded RTF file')
+                            ->default(function ($record) {
+                                if ($record && isset($record->meta['enhanced-profile-text-filename'])) {
+                                    return $record->meta['enhanced-profile-text-filename'];
+                                }
+
+                                return null;
+                            }),
+                    ]),
+
+                Forms\Components\Section::make('Additional Data')
+                    ->schema([
+                        Forms\Components\KeyValue::make('additional_data')
+                            ->keyLabel('Key')
+                            ->valueLabel('Value')
+                            ->helperText('Additional metadata fields'),
+                    ]),
+
+                Forms\Components\Section::make('Location Map')
+                    ->schema([
+                        Forms\Components\ViewField::make('map')
+                            ->label('Location Map')
+                            ->view('filament.components.provider-map-simple')
+                            ->viewData(function ($record) {
+                                if (! $record) {
+                                    return [
+                                        'latitude' => null,
+                                        'longitude' => null,
+                                        'address' => 'No record available',
+                                        'mapId' => 'map-no-record',
+                                    ];
+                                }
+
+                                $latitude = $record->meta['latitude'] ?? null;
+                                $longitude = $record->meta['longitude'] ?? null;
+
+                                if (! $latitude || ! $longitude) {
+                                    return [
+                                        'latitude' => null,
+                                        'longitude' => null,
+                                        'address' => 'No location data available - address geocoding required',
+                                        'mapId' => 'map-no-coords',
+                                    ];
+                                }
+
+                                $street = $record->meta['address-street'] ?? '';
+                                $city = $record->meta['address-city'] ?? '';
+                                $state = $record->meta['address-state'] ?? '';
+                                $zip = $record->meta['address-zip'] ?? '';
+
+                                $address = trim($street).' '.trim($city).' '.trim($state);
+                                if (! empty($zip)) {
+                                    $address .= ' '.trim($zip);
+                                }
+
+                                return [
+                                    'latitude' => $latitude,
+                                    'longitude' => $longitude,
+                                    'address' => $address,
+                                    'mapId' => 'map-'.$record->id,
+                                ];
+                            })
+                            ->columnSpanFull(),
+                    ]),
+
                 Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
-                    ->helperText('Additional metadata for this dentist'),
+                    ->helperText('Raw metadata for this dentist'),
             ]);
     }
 
@@ -132,7 +283,7 @@ class DentistProviderResource extends Resource
                         }
 
                         // Remove leading slash if present and ensure it starts with /storage/
-                        $path = ltrim($path, '/');
+                        $path = ltrim((string) $path, '/');
                         if (! str_starts_with($path, 'storage/')) {
                             $path = 'storage/'.ltrim($path, 'storage/');
                         }
@@ -147,17 +298,9 @@ class DentistProviderResource extends Resource
                     })
                     ->size(60)
                     ->circular()
-                    ->defaultImageUrl(null), // Don't show placeholder for missing photos
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('provider_id')
-                    ->getStateUsing(fn (Provider $record): string => $record->meta['id'] ?? $record->provider_id ?? '')
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        return $query->where('meta->id', 'like', "%{$search}%")
-                            ->orWhere('provider_id', 'like', "%{$search}%");
-                    })
-                    ->sortable(),
+                    ->defaultImageUrl(null)
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Name')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['title'] ?? 'Untitled')
@@ -172,6 +315,8 @@ class DentistProviderResource extends Resource
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->business_name', 'like', "%{$search}%");
                     })
+                    ->sortable()
+                    ->toggleable()
                     ->limit(30),
                 Tables\Columns\TextColumn::make('specialty')
                     ->label('Specialty')
@@ -179,12 +324,117 @@ class DentistProviderResource extends Resource
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->specialty', 'like', "%{$search}%");
                     })
+                    ->sortable()
+                    ->toggleable()
                     ->limit(20),
-                Tables\Columns\TextColumn::make('meta_count')
-                    ->label('Meta Fields')
-                    ->getStateUsing(fn (Provider $record): int => $record->meta->count())
-                    ->badge()
-                    ->color('gray'),
+                Tables\Columns\IconColumn::make('has_image')
+                    ->label('Image')
+                    ->boolean()
+                    ->getStateUsing(function (Provider $record): bool {
+                        $path = $record->meta['enhanced_photo_path'] ?? null;
+                        if (! $path) {
+                            return false;
+                        }
+
+                        $path = ltrim((string) $path, '/');
+                        if (! str_starts_with($path, 'storage/')) {
+                            $path = 'storage/'.ltrim($path, 'storage/');
+                        }
+
+                        return file_exists(public_path($path));
+                    })
+                    ->trueIcon('heroicon-o-photo')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('has_enhanced_profile')
+                    ->label('Enhanced Profile')
+                    ->boolean()
+                    ->getStateUsing(function (Provider $record): bool {
+                        $enhancedProfile = $record->meta['enhanced-profile-text'] ?? '';
+
+                        return ! empty(trim($enhancedProfile));
+                    })
+                    ->trueIcon('heroicon-o-document-text')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('has_address')
+                    ->label('Address')
+                    ->boolean()
+                    ->getStateUsing(function (Provider $record): bool {
+                        $street = $record->meta['address-street'] ?? '';
+                        $city = $record->meta['address-city'] ?? '';
+                        $state = $record->meta['address-state'] ?? '';
+                        $zip = $record->meta['address-zip'] ?? '';
+
+                        return ! empty(trim($street)) && ! empty(trim($city)) && ! empty(trim($state));
+                    })
+                    ->trueIcon('heroicon-o-map-pin')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('address')
+                    ->label('Location')
+                    ->getStateUsing(function (Provider $record): string {
+                        $street = $record->meta['address-street'] ?? '';
+                        $city = $record->meta['address-city'] ?? '';
+                        $state = $record->meta['address-state'] ?? '';
+                        $zip = $record->meta['address-zip'] ?? '';
+
+                        if (empty(trim($street)) || empty(trim($city)) || empty(trim($state))) {
+                            return 'No address';
+                        }
+
+                        $address = trim($street).', '.trim($city).', '.trim($state);
+                        if (! empty($zip)) {
+                            $address .= ' '.trim($zip);
+                        }
+
+                        return $address;
+                    })
+                    ->limit(40)
+                    ->tooltip(function (Provider $record): string {
+                        $street = $record->meta['address-street'] ?? '';
+                        $city = $record->meta['address-city'] ?? '';
+                        $state = $record->meta['address-state'] ?? '';
+                        $zip = $record->meta['address-zip'] ?? '';
+
+                        if (empty(trim($street)) || empty(trim($city)) || empty(trim($state))) {
+                            return 'No address available';
+                        }
+
+                        $address = trim($street).', '.trim($city).', '.trim($state);
+                        if (! empty($zip)) {
+                            $address .= ' '.trim($zip);
+                        }
+
+                        return $address;
+                    })
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Phone')
+                    ->getStateUsing(fn (Provider $record): string => $record->meta['phone'] ?? '')
+                    ->toggleable()
+                    ->limit(15),
+                Tables\Columns\TextColumn::make('website')
+                    ->label('Website')
+                    ->getStateUsing(fn (Provider $record): string => $record->meta['website'] ?? '')
+                    ->toggleable()
+                    ->limit(25)
+                    ->url(fn (Provider $record): ?string => $record->meta['website'] ?? null),
+                Tables\Columns\IconColumn::make('best_of_washingtonian')
+                    ->label('Best of WA')
+                    ->boolean()
+                    ->getStateUsing(fn (Provider $record): bool => (bool) ($record->meta['best_of_washingtonian'] ?? false))
+                    ->trueIcon('heroicon-o-star')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->trueColor('warning')
+                    ->falseColor('gray')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -196,6 +446,75 @@ class DentistProviderResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
+
+                Tables\Filters\TernaryFilter::make('has_image')
+                    ->label('Has Image')
+                    ->placeholder('All dentists')
+                    ->trueLabel('With images')
+                    ->falseLabel('Without images')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where(function ($query) {
+                            $query->whereNotNull('meta->enhanced_photo_path')
+                                ->where('meta->enhanced_photo_path', '!=', '');
+                        }),
+                        false: fn (Builder $query) => $query->where(function ($query) {
+                            $query->whereNull('meta->enhanced_photo_path')
+                                ->orWhere('meta->enhanced_photo_path', '=', '');
+                        }),
+                    ),
+
+                Tables\Filters\TernaryFilter::make('has_address')
+                    ->label('Has Address')
+                    ->placeholder('All dentists')
+                    ->trueLabel('With addresses')
+                    ->falseLabel('Without addresses')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where(function ($query) {
+                            $query->whereNotNull('meta->address-street')
+                                ->where('meta->address-street', '!=', '')
+                                ->whereNotNull('meta->address-city')
+                                ->where('meta->address-city', '!=', '')
+                                ->whereNotNull('meta->address-state')
+                                ->where('meta->address-state', '!=', '');
+                        }),
+                        false: fn (Builder $query) => $query->where(function ($query) {
+                            $query->whereNull('meta->address-street')
+                                ->orWhere('meta->address-street', '=', '')
+                                ->orWhereNull('meta->address-city')
+                                ->orWhere('meta->address-city', '=', '')
+                                ->orWhereNull('meta->address-state')
+                                ->orWhere('meta->address-state', '=', '');
+                        }),
+                    ),
+
+                Tables\Filters\TernaryFilter::make('has_enhanced_profile')
+                    ->label('Has Enhanced Profile')
+                    ->placeholder('All dentists')
+                    ->trueLabel('With enhanced profile')
+                    ->falseLabel('Without enhanced profile')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where(function ($query) {
+                            $query->whereNotNull('meta->enhanced-profile-text')
+                                ->where('meta->enhanced-profile-text', '!=', '');
+                        }),
+                        false: fn (Builder $query) => $query->where(function ($query) {
+                            $query->whereNull('meta->enhanced-profile-text')
+                                ->orWhere('meta->enhanced-profile-text', '=', '');
+                        }),
+                    ),
+
+                Tables\Filters\TernaryFilter::make('has_awards')
+                    ->label('Has Awards')
+                    ->placeholder('All dentists')
+                    ->trueLabel('With awards')
+                    ->falseLabel('Without awards')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where('meta->best_of_washingtonian', true),
+                        false: fn (Builder $query) => $query->where(function ($query) {
+                            $query->where('meta->best_of_washingtonian', false)
+                                ->orWhereNull('meta->best_of_washingtonian');
+                        }),
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

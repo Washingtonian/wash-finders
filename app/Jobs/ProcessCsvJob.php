@@ -20,6 +20,8 @@ class ProcessCsvJob implements ShouldQueue
 
     public $remoteUrl;
 
+    public $stats;
+
     protected const CACHE_DURATION = 0; // 120 * 24 * 60; // 120 days in minutes
 
     public $fileName = 'imported_csv.csv';

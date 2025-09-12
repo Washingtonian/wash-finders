@@ -87,15 +87,13 @@ class RealtorProviderResource extends Resource
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->id', 'like', "%{$search}%")
                             ->orWhere('provider_id', 'like', "%{$search}%");
-                    })
-                    ->sortable(),
+                    }),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Name')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['title'] ?? 'Untitled')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->title', 'like', "%{$search}%");
                     })
-                    ->sortable()
                     ->limit(30),
                 Tables\Columns\TextColumn::make('business_name')
                     ->label('Business')

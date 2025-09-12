@@ -14,6 +14,24 @@ class GeocodeAddress
             return $next($record);
         }
 
+        // Check if we have coordinates in the locations array (from AddLocations pipeline)
+        if (isset($record['locations']) && is_array($record['locations']) && ! empty($record['locations'])) {
+            $firstLocation = $record['locations'][0];
+            if (isset($firstLocation['lat']) && isset($firstLocation['lng'])) {
+                $record['latitude'] = $firstLocation['lat'];
+                $record['longitude'] = $firstLocation['lng'];
+                $record['geocoded_address'] = $firstLocation['address'] ?? '';
+
+                Log::info('Coordinates extracted from locations array', [
+                    'address' => $firstLocation['address'] ?? '',
+                    'coordinates' => ['lat' => $firstLocation['lat'], 'lng' => $firstLocation['lng']],
+                    'provider_id' => $record['id'] ?? $record['provider_id'] ?? 'unknown',
+                ]);
+
+                return $next($record);
+            }
+        }
+
         // Build the full address
         $address = $this->buildAddress($record);
 

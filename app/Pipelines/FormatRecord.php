@@ -72,7 +72,7 @@ class FormatRecord
             ->send($value)
             ->through([
                 fn ($value, $next) => $value === '1' || $value === '0' ? (bool) $value : $next($value),
-                fn ($value, $next) => $key === 'enhanced-profile-text' ? trim(preg_replace('/(<style.*?<\/style>)|<[^>]*>|\s+/', ' ', $value)) : $next($value),
+                fn ($value, $next) => $key === 'enhanced-profile-text' ? $this->formatEnhancedProfileText($value) : $next($value),
                 fn ($value, $next) => is_string($value) ? trim(preg_replace('/\s+/', ' ', $value)) : $next($value),
             ])
             ->thenReturn();
@@ -109,5 +109,26 @@ class FormatRecord
             ->filter()
             ->values()
             ->toArray();
+    }
+
+    private function formatEnhancedProfileText($value)
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        // Remove style tags but preserve other HTML
+        $value = preg_replace('/(<style.*?<\/style>)/', '', $value);
+
+        // Convert line breaks to HTML breaks
+        $value = preg_replace('/\r\n|\r|\n/', '<br>', $value);
+
+        // Clean up multiple spaces but preserve single spaces
+        $value = preg_replace('/[ \t]+/', ' ', $value);
+
+        // Clean up multiple line breaks
+        $value = preg_replace('/(<br>\s*){3,}/', '<br><br>', $value);
+
+        return trim($value);
     }
 }

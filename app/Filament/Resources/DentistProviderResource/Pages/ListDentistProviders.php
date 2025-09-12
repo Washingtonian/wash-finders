@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\DentistProviderResource\Pages;
 
 use App\Filament\Resources\DentistProviderResource;
+use App\Filament\Resources\DentistProviderResource\Widgets\DentistStatsWidget;
 use App\Models\Import;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -50,6 +51,13 @@ class ListDentistProviders extends ListRecords
                 ->modalDescription('This will start the dentists import process.')
                 ->modalSubmitActionLabel('Start Import')
                 ->visible(fn () => Import::where('provider_type', 'dentists')->exists()),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            DentistStatsWidget::class,
         ];
     }
 }
