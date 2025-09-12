@@ -41,6 +41,39 @@ class DoctorProviderResource extends Resource
                     ->image()
                     ->directory('enhanced_photos/doctors')
                     ->visibility('public'),
+                Forms\Components\TextInput::make('latitude')
+                    ->label('Latitude')
+                    ->disabled()
+                    ->helperText('Geocoded latitude coordinate'),
+                Forms\Components\TextInput::make('longitude')
+                    ->label('Longitude')
+                    ->disabled()
+                    ->helperText('Geocoded longitude coordinate'),
+                Forms\Components\View::make('filament.components.provider-map')
+                    ->label('Location Map')
+                    ->columnSpanFull()
+                    ->viewData(function ($record) {
+                        $address = null;
+                        if ($record) {
+                            $street = $record->meta['address-street'] ?? '';
+                            $city = $record->meta['address-city'] ?? '';
+                            $state = $record->meta['address-state'] ?? '';
+                            $zip = $record->meta['address-zip'] ?? '';
+
+                            if (! empty($street) && ! empty($city) && ! empty($state)) {
+                                $address = trim($street).' '.trim($city).' '.trim($state);
+                                if (! empty($zip)) {
+                                    $address .= ' '.trim($zip);
+                                }
+                            }
+                        }
+
+                        return [
+                            'latitude' => $record?->meta['latitude'] ?? null,
+                            'longitude' => $record?->meta['longitude'] ?? null,
+                            'address' => $address,
+                        ];
+                    }),
                 Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')

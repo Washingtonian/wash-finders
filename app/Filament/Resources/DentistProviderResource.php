@@ -65,6 +65,49 @@ class DentistProviderResource extends Resource
                     ->label('Longitude')
                     ->disabled()
                     ->helperText('Geocoded longitude coordinate'),
+                Forms\Components\ViewField::make('map')
+                    ->label('Location Map')
+                    ->view('filament.components.provider-map-simple')
+                    ->viewData(function ($record) {
+                        if (! $record) {
+                            return [
+                                'latitude' => null,
+                                'longitude' => null,
+                                'address' => 'No record available',
+                                'mapId' => 'map-no-record',
+                            ];
+                        }
+
+                        $latitude = $record->meta['latitude'] ?? null;
+                        $longitude = $record->meta['longitude'] ?? null;
+
+                        if (! $latitude || ! $longitude) {
+                            return [
+                                'latitude' => null,
+                                'longitude' => null,
+                                'address' => 'No location data available - address geocoding required',
+                                'mapId' => 'map-no-coords',
+                            ];
+                        }
+
+                        $street = $record->meta['address-street'] ?? '';
+                        $city = $record->meta['address-city'] ?? '';
+                        $state = $record->meta['address-state'] ?? '';
+                        $zip = $record->meta['address-zip'] ?? '';
+
+                        $address = trim($street).' '.trim($city).' '.trim($state);
+                        if (! empty($zip)) {
+                            $address .= ' '.trim($zip);
+                        }
+
+                        return [
+                            'latitude' => $latitude,
+                            'longitude' => $longitude,
+                            'address' => $address,
+                            'mapId' => 'map-'.$record->id,
+                        ];
+                    })
+                    ->columnSpanFull(),
                 Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')

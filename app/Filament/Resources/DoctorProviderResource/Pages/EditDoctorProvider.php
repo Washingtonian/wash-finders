@@ -16,4 +16,16 @@ class EditDoctorProvider extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (isset($data['meta']['latitude'])) {
+            $data['latitude'] = $data['meta']['latitude'];
+        }
+        if (isset($data['meta']['longitude'])) {
+            $data['longitude'] = $data['meta']['longitude'];
+        }
+
+        return $data;
+    }
 }
