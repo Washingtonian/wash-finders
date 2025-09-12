@@ -56,10 +56,29 @@ class LawyerProviderResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('photo')
                     ->label('Photo')
-                    ->getStateUsing(fn (Provider $record): ?string => $record->meta['enhanced_photo_path'] ?? null)
+                    ->getStateUsing(function (Provider $record): ?string {
+                        $path = $record->meta['enhanced_photo_path'] ?? null;
+                        if (! $path) {
+                            return null;
+                        }
+
+                        // Remove leading slash if present and ensure it starts with /storage/
+                        $path = ltrim($path, '/');
+                        if (! str_starts_with($path, 'storage/')) {
+                            $path = 'storage/'.ltrim($path, 'storage/');
+                        }
+
+                        // Check if file actually exists on disk before showing it
+                        $fullPath = public_path($path);
+                        if (! file_exists($fullPath)) {
+                            return null;
+                        }
+
+                        return url($path);
+                    })
                     ->size(60)
                     ->circular()
-                    ->defaultImageUrl('/images/placeholder-avatar.png'),
+                    ->defaultImageUrl(null), // Don't show placeholder for missing photos
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->sortable(),

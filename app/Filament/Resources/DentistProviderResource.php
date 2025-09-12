@@ -94,11 +94,17 @@ class DentistProviderResource extends Resource
                             $path = 'storage/'.ltrim($path, 'storage/');
                         }
 
+                        // Check if file actually exists on disk before showing it
+                        $fullPath = public_path($path);
+                        if (! file_exists($fullPath)) {
+                            return null;
+                        }
+
                         return url($path);
                     })
                     ->size(60)
                     ->circular()
-                    ->defaultImageUrl('/images/placeholder-avatar.png'),
+                    ->defaultImageUrl(null), // Don't show placeholder for missing photos
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->sortable(),
