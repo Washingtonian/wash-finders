@@ -41,7 +41,29 @@ class DentistProviderResource extends Resource
                     ->label('Photo')
                     ->image()
                     ->directory('enhanced_photos/dentists')
-                    ->visibility('public'),
+                    ->visibility('public')
+                    ->getUploadedFileUrlUsing(function ($state, $record) {
+                        if ($state) {
+                            return Storage::url($state);
+                        }
+                        if ($record && $record->meta['enhanced_photo_path']) {
+                            $path = ltrim($record->meta['enhanced_photo_path'], '/');
+                            if (!str_starts_with($path, 'storage/')) {
+                                $path = 'storage/' . ltrim($path, 'storage/');
+                            }
+                            return url($path);
+                        }
+                        return null;
+                    })
+                    ->getUploadedFileNameForStorageUsing(function ($file) {
+                        return 'enhanced_photos/dentists/' . $file->getClientOriginalName();
+                    })
+                    ->afterStateUpdated(function ($state, $record) {
+                        if ($state && $record) {
+                            $record->meta['enhanced_photo_path'] = '/storage/' . $state;
+                            $record->save();
+                        }
+                    }),
                 Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
@@ -59,7 +81,20 @@ class DentistProviderResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('photo')
                     ->label('Photo')
-                    ->getStateUsing(fn (Provider $record): ?string => $record->meta['enhanced_photo_path'] ?? null)
+                    ->getStateUsing(function (Provider $record): ?string {
+                        $path = $record->meta['enhanced_photo_path'] ?? null;
+                        if (! $path) {
+                            return null;
+                        }
+
+                        // Remove leading slash if present and ensure it starts with /storage/
+                        $path = ltrim($path, '/');
+                        if (! str_starts_with($path, 'storage/')) {
+                            $path = 'storage/'.ltrim($path, 'storage/');
+                        }
+
+                        return url($path);
+                    })
                     ->size(60)
                     ->circular()
                     ->defaultImageUrl('/images/placeholder-avatar.png'),
