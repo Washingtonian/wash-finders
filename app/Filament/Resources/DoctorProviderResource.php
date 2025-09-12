@@ -9,9 +9,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,31 +30,31 @@ class DoctorProviderResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Providers';
 
-    public static function form(Schema $schema): Schema
+    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
         return $schema
             ->schema([
                 TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                Filament\Schemas\Components\TextInput::make('slug')
+                \Filament\Forms\Components\TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                Filament\Schemas\Components\FileUpload::make('photo')
+                \Filament\Forms\Components\FileUpload::make('photo')
                     ->label('Photo')
                     ->image()
                     ->directory('enhanced_photos/doctors')
                     ->visibility('public'),
-                Filament\Schemas\Components\TextInput::make('latitude')
+                \Filament\Forms\Components\TextInput::make('latitude')
                     ->label('Latitude')
                     ->disabled()
                     ->helperText('Geocoded latitude coordinate'),
-                Filament\Schemas\Components\TextInput::make('longitude')
+                \Filament\Forms\Components\TextInput::make('longitude')
                     ->label('Longitude')
                     ->disabled()
                     ->helperText('Geocoded longitude coordinate'),
-                Filament\Schemas\Components\View::make('filament.components.provider-map')
+                \Filament\Forms\Components\View::make('filament.components.provider-map')
                     ->label('Location Map')
                     ->columnSpanFull()
                     ->viewData(function ($record) {
@@ -80,7 +79,7 @@ class DoctorProviderResource extends Resource
                             'address' => $address,
                         ];
                     }),
-                Filament\Schemas\Components\KeyValue::make('meta')
+                \Filament\Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()

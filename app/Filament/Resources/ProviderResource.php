@@ -8,7 +8,6 @@ use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -41,25 +40,25 @@ class ProviderResource extends Resource
         return [];
     }
 
-    public static function form(Schema $schema): Schema
+    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
         return $schema
             ->schema([
-                Filament\Schemas\Components\Select::make('type')
+                \Filament\Forms\Components\Select::make('type')
                     ->required()
                     ->options(Provider::getAvailableTypes())
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('slug', Str::slug($state.'-'.now()->timestamp))
                     ),
-                Filament\Schemas\Components\TextInput::make('provider_id')
+                \Filament\Forms\Components\TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                Filament\Schemas\Components\TextInput::make('slug')
+                \Filament\Forms\Components\TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                Filament\Schemas\Components\KeyValue::make('meta')
+                \Filament\Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -205,7 +204,7 @@ class ProviderResource extends Resource
                     ->icon('heroicon-o-play')
                     ->color('success')
                     ->form([
-                        Filament\Schemas\Components\Select::make('import_id')
+                        \Filament\Forms\Components\Select::make('import_id')
                             ->label('Select Import to Run')
                             ->options(function () {
                                 return \App\Models\Import::active()
@@ -218,7 +217,7 @@ class ProviderResource extends Resource
                             ->required()
                             ->searchable()
                             ->placeholder('Choose an import to run'),
-                        Filament\Schemas\Components\Toggle::make('force_run')
+                        \Filament\Forms\Components\Toggle::make('force_run')
                             ->label('Force Run (even if already running)')
                             ->default(false)
                             ->helperText('Check this to run even if the import is currently running'),

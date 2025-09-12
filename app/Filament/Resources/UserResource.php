@@ -10,7 +10,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,21 +31,21 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    public static function form(Schema $schema): Schema
+    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
         return $schema
             ->schema([
-                Filament\Schemas\Components\TextInput::make('name')
+                \Filament\Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Filament\Schemas\Components\TextInput::make('email')
+                \Filament\Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
                     ->maxLength(255)
                     ->unique(User::class, 'email', ignoreRecord: true),
-                Filament\Schemas\Components\DateTimePicker::make('email_verified_at')
+                \Filament\Forms\Components\DateTimePicker::make('email_verified_at')
                     ->label('Email Verified At'),
-                Filament\Schemas\Components\TextInput::make('password')
+                \Filament\Forms\Components\TextInput::make('password')
                     ->password()
                     ->required(fn (string $context): bool => $context === 'create')
                     ->minLength(8)
