@@ -146,4 +146,14 @@ class IndustryLeaderProviderResource extends Resource
 
         return parent::getUrl($name, $parameters, $isAbsolute, $panel, $tenant);
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('type', 'industry_leaders')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
+    }
 }

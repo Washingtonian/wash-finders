@@ -146,4 +146,14 @@ class FinancialAdvisorProviderResource extends Resource
 
         return parent::getUrl($name, $parameters, $isAbsolute, $panel, $tenant);
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('type', 'financial_advisors')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
+    }
 }

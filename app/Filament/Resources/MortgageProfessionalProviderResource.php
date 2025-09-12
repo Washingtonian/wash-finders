@@ -146,4 +146,14 @@ class MortgageProfessionalProviderResource extends Resource
 
         return parent::getUrl($name, $parameters, $isAbsolute, $panel, $tenant);
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('type', 'mortgage_professionals')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'info';
+    }
 }
