@@ -121,6 +121,7 @@ class ProcessCsv
                 fn ($record, $next) => $next(array_merge($record, ['type' => $type])),
                 FormatRecord::class,
                 AddLocations::class,
+                GeocodeAddress::class,
                 DownloadPhoto::class,
                 DownloadRtf::class,
                 CleanRecord::class,

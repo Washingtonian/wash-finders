@@ -57,11 +57,14 @@ class DentistProviderResource extends Resource
                     ->label('RTF File Path')
                     ->disabled()
                     ->helperText('Path to the downloaded RTF file'),
-                Forms\Components\Textarea::make('bio')
-                    ->label('Bio')
-                    ->rows(4)
-                    ->columnSpanFull()
-                    ->helperText('Short biography or description'),
+                Forms\Components\TextInput::make('latitude')
+                    ->label('Latitude')
+                    ->disabled()
+                    ->helperText('Geocoded latitude coordinate'),
+                Forms\Components\TextInput::make('longitude')
+                    ->label('Longitude')
+                    ->disabled()
+                    ->helperText('Geocoded longitude coordinate'),
                 Forms\Components\KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')

@@ -36,8 +36,11 @@ class EditDentistProvider extends EditRecord
         if (isset($data['meta']['enhanced_profile_text_path'])) {
             $data['enhanced_profile_text_path'] = $data['meta']['enhanced_profile_text_path'];
         }
-        if (isset($data['meta']['bio'])) {
-            $data['bio'] = $data['meta']['bio'];
+        if (isset($data['meta']['latitude'])) {
+            $data['latitude'] = $data['meta']['latitude'];
+        }
+        if (isset($data['meta']['longitude'])) {
+            $data['longitude'] = $data['meta']['longitude'];
         }
 
         return $data;
@@ -50,12 +53,9 @@ class EditDentistProvider extends EditRecord
             $data['meta']['enhanced_photo_path'] = '/storage/'.$data['photo'];
         }
 
-        // Save enhanced profile text and bio to meta
+        // Save enhanced profile text to meta
         if (isset($data['enhanced_profile_text'])) {
             $data['meta']['enhanced-profile-text'] = $data['enhanced_profile_text'];
-        }
-        if (isset($data['bio'])) {
-            $data['meta']['bio'] = $data['bio'];
         }
 
         return $data;

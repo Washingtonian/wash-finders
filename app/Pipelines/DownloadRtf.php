@@ -109,28 +109,51 @@ class DownloadRtf
 
     private function convertRtfToHtml($rtfContent)
     {
-        // Simple RTF to HTML conversion
-        // Remove RTF control words and convert basic formatting
+        // Enhanced RTF to HTML conversion with proper line break preservation
 
-        // Remove RTF header
-        $html = preg_replace('/^\{.*?\\rtf1/', '', $rtfContent);
+        // Remove RTF header and font table
+        $html = preg_replace('/^\{.*?\\\\rtf1[^}]*\}/', '', $rtfContent);
 
-        // Convert basic formatting
-        $html = preg_replace('/\\b(\\w+)\\b/', '$1', $html);
-        $html = preg_replace('/\\par/', '<br>', $html);
-        $html = preg_replace('/\\b/', '', $html);
-        $html = preg_replace('/\\f\d+/', '', $html);
-        $html = preg_replace('/\\fs\d+/', '', $html);
+        // Convert paragraph breaks to line breaks (fix regex escaping)
+        $html = preg_replace('/\\\\par\s*/', '<br>', $html);
+        $html = preg_replace('/\\\\par\b/', '<br>', $html);
 
-        // Clean up remaining RTF control words
-        $html = preg_replace('/\\[a-zA-Z]+\d*\s?/', '', $html);
+        // Add line breaks after periods followed by capital letters (natural paragraph breaks)
+        $html = preg_replace('/([.!?])\s+([A-Z])/', '$1<br><br>$2', $html);
+
+        // Convert bold formatting (fix regex escaping)
+        $html = preg_replace('/\\\\b\s*/', '<strong>', $html);
+        $html = preg_replace('/\\\\b0\s*/', '</strong>', $html);
+
+        // Convert italic formatting (fix regex escaping)
+        $html = preg_replace('/\\\\i\s*/', '<em>', $html);
+        $html = preg_replace('/\\\\i0\s*/', '</em>', $html);
+
+        // Convert underline formatting (fix regex escaping)
+        $html = preg_replace('/\\\\ul\s*/', '<u>', $html);
+        $html = preg_replace('/\\\\ul0\s*/', '</u>', $html);
+
+        // Remove font control words (fix regex escaping)
+        $html = preg_replace('/\\\\f\d+\s*/', '', $html);
+        $html = preg_replace('/\\\\fs\d+\s*/', '', $html);
+        $html = preg_replace('/\\\\cf\d+\s*/', '', $html);
+
+        // Remove other RTF control words (fix regex escaping)
+        $html = preg_replace('/\\\\[a-zA-Z]+\d*\s*/', '', $html);
+
+        // Remove braces
         $html = preg_replace('/[{}]/', '', $html);
 
-        // Clean up extra whitespace
-        $html = preg_replace('/\s+/', ' ', $html);
+        // Clean up multiple spaces but preserve line breaks
+        $html = preg_replace('/[ \t]+/', ' ', $html);
+
+        // Clean up multiple line breaks
+        $html = preg_replace('/(<br>\s*){3,}/', '<br><br>', $html);
+
+        // Remove leading/trailing whitespace
         $html = trim($html);
 
-        // Wrap in basic HTML structure if content exists
+        // Wrap in proper HTML structure if content exists
         if (! empty($html)) {
             $html = '<div class="enhanced-profile-text">'.$html.'</div>';
         }
