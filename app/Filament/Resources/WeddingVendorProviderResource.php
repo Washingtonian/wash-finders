@@ -2,17 +2,26 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\WeddingVendorProviderResource\Pages;
+use App\Filament\Resources\WeddingVendorProviderResource\Pages\CreateWeddingVendorProvider;
+use App\Filament\Resources\WeddingVendorProviderResource\Pages\EditWeddingVendorProvider;
+use App\Filament\Resources\WeddingVendorProviderResource\Pages\ListWeddingVendorProviders;
 use App\Models\Provider;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class WeddingVendorProviderResource extends Resource
@@ -29,23 +38,23 @@ class WeddingVendorProviderResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Providers';
 
-    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                \Filament\Forms\Components\TextInput::make('provider_id')
+                TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                \Filament\Forms\Components\TextInput::make('slug')
+                TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                \Filament\Forms\Components\FileUpload::make('photo')
+                FileUpload::make('photo')
                     ->label('Photo')
                     ->image()
                     ->directory('enhanced_photos/wedding_vendors')
                     ->visibility('public'),
-                \Filament\Forms\Components\KeyValue::make('meta')
+                KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -58,7 +67,7 @@ class WeddingVendorProviderResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->where('type', 'wedding_vendors'))
             ->columns([
-                Tables\Columns\ImageColumn::make('photo')
+                ImageColumn::make('photo')
                     ->label('Photo')
                     ->getStateUsing(function (Provider $record): ?string {
                         $path = $record->meta['enhanced_photo_path'] ?? null;
@@ -80,61 +89,61 @@ class WeddingVendorProviderResource extends Resource
 
                         return url($path);
                     })
-                    ->size(60)
+                    ->imageSize(60)
                     ->circular()
                     ->defaultImageUrl(null), // Don't show placeholder for missing photos
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->label('ID')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('provider_id')
+                TextColumn::make('provider_id')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['id'] ?? $record->provider_id ?? '')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->id', 'like', "%{$search}%")
                             ->orWhere('provider_id', 'like', "%{$search}%");
                     }),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Name')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['title'] ?? 'Untitled')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->title', 'like', "%{$search}%");
                     })
                     ->limit(30),
-                Tables\Columns\TextColumn::make('business_name')
+                TextColumn::make('business_name')
                     ->label('Business')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['business_name'] ?? '')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->business_name', 'like', "%{$search}%");
                     })
                     ->limit(30),
-                Tables\Columns\TextColumn::make('specialty')
+                TextColumn::make('specialty')
                     ->label('Specialty')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['specialty'] ?? '')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where('meta->specialty', 'like', "%{$search}%");
                     })
                     ->limit(20),
-                Tables\Columns\TextColumn::make('meta_count')
+                TextColumn::make('meta_count')
                     ->label('Meta Fields')
                     ->getStateUsing(fn (Provider $record): int => $record->meta->count())
                     ->badge()
                     ->color('gray'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
@@ -155,13 +164,13 @@ class WeddingVendorProviderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListWeddingVendorProviders::route('/'),
-            'create' => Pages\CreateWeddingVendorProvider::route('/create'),
-            'edit' => Pages\EditWeddingVendorProvider::route('/{record}/edit'),
+            'index' => ListWeddingVendorProviders::route('/'),
+            'create' => CreateWeddingVendorProvider::route('/create'),
+            'edit' => EditWeddingVendorProvider::route('/{record}/edit'),
         ];
     }
 
-    public static function getUrl(?string $name = null, array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    public static function getUrl(?string $name = null, array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {
         $parameters['type'] = 'wedding_vendors';
 

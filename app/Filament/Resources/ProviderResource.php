@@ -3,12 +3,29 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProviderResource\Pages;
+use App\Jobs\ProcessImportJob;
+use App\Models\Import;
 use App\Models\Provider;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -40,25 +57,25 @@ class ProviderResource extends Resource
         return [];
     }
 
-    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                \Filament\Forms\Components\Select::make('type')
+                Select::make('type')
                     ->required()
                     ->options(Provider::getAvailableTypes())
                     ->searchable()
                     ->live()
-                    ->afterStateUpdated(fn (Forms\Set $set, $state) => $set('slug', Str::slug($state.'-'.now()->timestamp))
+                    ->afterStateUpdated(fn (Set $set, $state) => $set('slug', Str::slug($state.'-'.now()->timestamp))
                     ),
-                \Filament\Forms\Components\TextInput::make('provider_id')
+                TextInput::make('provider_id')
                     ->maxLength(255)
                     ->placeholder('External provider ID'),
-                \Filament\Forms\Components\TextInput::make('slug')
+                TextInput::make('slug')
                     ->maxLength(255)
                     ->placeholder('URL-friendly slug')
                     ->required(),
-                \Filament\Forms\Components\KeyValue::make('meta')
+                KeyValue::make('meta')
                     ->keyLabel('Key')
                     ->valueLabel('Value')
                     ->columnSpanFull()
@@ -80,7 +97,7 @@ class ProviderResource extends Resource
             ->persistSortInSession()
             ->persistSearchInSession()
             ->headerActions([
-                Filament\Actions\Action::make('import_status')
+                Action::make('import_status')
                     ->label(function () {
                         $runningCount = \App\Models\Import::where('last_run_status', 'running')->count();
                         $completedCount = \App\Models\Import::where('last_run_status', 'completed')->count();
@@ -142,9 +159,9 @@ class ProviderResource extends Resource
                         return $runningCount + $completedCount + $pendingCount + $failedCount;
                     })
                     ->badgeColor(function () {
-                        $runningCount = \App\Models\Import::where('last_run_status', 'running')->count();
-                        $completedCount = \App\Models\Import::where('last_run_status', 'completed')->count();
-                        $failedCount = \App\Models\Import::where('last_run_status', 'failed')->count();
+                        $runningCount = Import::where('last_run_status', 'running')->count();
+                        $completedCount = Import::where('last_run_status', 'completed')->count();
+                        $failedCount = Import::where('last_run_status', 'failed')->count();
 
                         if ($runningCount > 0) {
                             return 'warning';
@@ -159,10 +176,10 @@ class ProviderResource extends Resource
                         return 'gray';
                     })
                     ->tooltip(function () {
-                        $runningImports = \App\Models\Import::where('last_run_status', 'running')->get(['name', 'provider_type', 'last_run_at']);
-                        $completedImports = \App\Models\Import::where('last_run_status', 'completed')->get(['name', 'provider_type', 'last_run_at']);
-                        $pendingImports = \App\Models\Import::where('last_run_status', 'pending')->get(['name', 'provider_type']);
-                        $failedImports = \App\Models\Import::where('last_run_status', 'failed')->get(['name', 'provider_type', 'last_run_at']);
+                        $runningImports = Import::where('last_run_status', 'running')->get(['name', 'provider_type', 'last_run_at']);
+                        $completedImports = Import::where('last_run_status', 'completed')->get(['name', 'provider_type', 'last_run_at']);
+                        $pendingImports = Import::where('last_run_status', 'pending')->get(['name', 'provider_type']);
+                        $failedImports = Import::where('last_run_status', 'failed')->get(['name', 'provider_type', 'last_run_at']);
 
                         $tooltip = '';
 
@@ -199,15 +216,15 @@ class ProviderResource extends Resource
                     ->disabled()
                     ->extraAttributes(['class' => 'cursor-default']),
 
-                Filament\Actions\Action::make('run_imports')
+                Action::make('run_imports')
                     ->label('Run Imports')
                     ->icon('heroicon-o-play')
                     ->color('success')
-                    ->form([
-                        \Filament\Forms\Components\Select::make('import_id')
+                    ->schema([
+                        Select::make('import_id')
                             ->label('Select Import to Run')
                             ->options(function () {
-                                return \App\Models\Import::active()
+                                return Import::active()
                                     ->get()
                                     ->mapWithKeys(fn ($import) => [
                                         $import->id => "{$import->name} ({$import->provider_type})".
@@ -217,16 +234,16 @@ class ProviderResource extends Resource
                             ->required()
                             ->searchable()
                             ->placeholder('Choose an import to run'),
-                        \Filament\Forms\Components\Toggle::make('force_run')
+                        Toggle::make('force_run')
                             ->label('Force Run (even if already running)')
                             ->default(false)
                             ->helperText('Check this to run even if the import is currently running'),
                     ])
                     ->action(function (array $data) {
-                        $import = \App\Models\Import::find($data['import_id']);
+                        $import = Import::find($data['import_id']);
 
                         if (! $import) {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Import not found')
                                 ->danger()
                                 ->send();
@@ -235,7 +252,7 @@ class ProviderResource extends Resource
                         }
 
                         if (! $data['force_run'] && $import->last_run_status === 'running') {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Import already running')
                                 ->body('This import is already running. Use "Force Run" to override.')
                                 ->warning()
@@ -245,7 +262,7 @@ class ProviderResource extends Resource
                         }
 
                         // Dispatch the import job to database queue
-                        \App\Jobs\ProcessImportJob::dispatch($import);
+                        ProcessImportJob::dispatch($import);
 
                         // Update import status
                         $import->update([
@@ -253,7 +270,7 @@ class ProviderResource extends Resource
                             'last_run_at' => now(),
                         ]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Import Started')
                             ->body("Import '{$import->name}' has been queued and will start processing shortly.")
                             ->success()
@@ -263,16 +280,16 @@ class ProviderResource extends Resource
                     ->modalHeading('Run Import')
                     ->modalDescription('Select an import to run. This will queue the import job for processing.')
                     ->modalSubmitActionLabel('Start Import')
-                    ->visible(fn () => \App\Models\Import::active()->count() > 0),
+                    ->visible(fn () => Import::active()->count() > 0),
 
-                Filament\Actions\Action::make('run_current_type_import')
+                Action::make('run_current_type_import')
                     ->label(function () {
                         $type = request()->get('type');
                         if (! $type) {
                             return 'Run All Imports';
                         }
 
-                        $importCount = \App\Models\Import::active()
+                        $importCount = Import::active()
                             ->where('provider_type', $type)
                             ->count();
 
@@ -284,7 +301,7 @@ class ProviderResource extends Resource
                         $type = request()->get('type');
 
                         // Always filter by type if it's provided
-                        $query = \App\Models\Import::active();
+                        $query = Import::active();
 
                         if ($type) {
                             $query->where('provider_type', $type);
@@ -297,7 +314,7 @@ class ProviderResource extends Resource
                                 ? "No active {$type} imports are available to run."
                                 : 'No active imports are available to run.';
 
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('No imports available')
                                 ->body($message)
                                 ->warning()
@@ -311,7 +328,7 @@ class ProviderResource extends Resource
 
                         foreach ($imports as $import) {
                             // Dispatch the import job to database queue
-                            \App\Jobs\ProcessImportJob::dispatch($import);
+                            ProcessImportJob::dispatch($import);
 
                             // Update import status
                             $import->update([
@@ -327,7 +344,7 @@ class ProviderResource extends Resource
                             ? "Started {$startedCount} {$type} import(s): ".implode(', ', $importNames)
                             : "Started {$startedCount} import(s) for processing.";
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Imports Started')
                             ->body($message)
                             ->success()
@@ -342,13 +359,13 @@ class ProviderResource extends Resource
                     ->modalDescription(function () {
                         $type = request()->get('type');
                         if ($type) {
-                            $count = \App\Models\Import::active()
+                            $count = Import::active()
                                 ->where('provider_type', $type)
                                 ->count();
 
                             return "This will start all available {$type} imports ({$count} import(s)).";
                         } else {
-                            $count = \App\Models\Import::active()
+                            $count = Import::active()
                                 ->count();
 
                             return "This will start all available imports ({$count} import(s)).";
@@ -359,20 +376,20 @@ class ProviderResource extends Resource
                         $type = request()->get('type');
 
                         if ($type) {
-                            return \App\Models\Import::active()
+                            return Import::active()
                                 ->where('provider_type', $type)
                                 ->count() > 0;
                         } else {
-                            return \App\Models\Import::active()
+                            return Import::active()
                                 ->count() > 0;
                         }
                     }),
             ])
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->label('ID')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('type')
+                TextColumn::make('type')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'dentists' => 'info',
@@ -393,38 +410,38 @@ class ProviderResource extends Resource
                     ->formatStateUsing(fn (string $state): string => Provider::getTypeLabel($state))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('provider_id')
+                TextColumn::make('provider_id')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('slug')
+                TextColumn::make('slug')
                     ->searchable()
                     ->sortable()
                     ->limit(30),
-                Tables\Columns\TextColumn::make('meta_count')
+                TextColumn::make('meta_count')
                     ->label('Meta Fields')
                     ->getStateUsing(fn (Provider $record): int => $record->meta->count())
                     ->badge()
                     ->color('gray'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->options(Provider::getAvailableTypes()),
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
-                Filament\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),

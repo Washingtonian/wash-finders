@@ -9,7 +9,6 @@ class ProviderController extends Controller
     public function index()
     {
         $providers = Provider::first();
-        dd($providers);
 
         return view('providers.index', compact('providers'));
     }

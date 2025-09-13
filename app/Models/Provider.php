@@ -45,7 +45,7 @@ class Provider extends Model
     public static function getAvailableTypes(): array
     {
         // Get types from imports table as source of truth
-        return \App\Models\Import::distinct()
+        return Import::distinct()
             ->whereNotNull('provider_type')
             ->pluck('provider_type')
             ->filter()
@@ -58,7 +58,7 @@ class Provider extends Model
     public static function getTypeLabel(string $type): string
     {
         // Get label from imports table if available, otherwise format the type name
-        $import = \App\Models\Import::where('provider_type', $type)->first();
+        $import = Import::where('provider_type', $type)->first();
         if ($import) {
             return $import->name ?? ucwords(str_replace('_', ' ', $type));
         }
