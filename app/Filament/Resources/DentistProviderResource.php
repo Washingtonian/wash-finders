@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DentistProviderResource\Pages;
+use App\Filament\Resources\DentistProviderResource\Pages\CreateDentistProvider;
+use App\Filament\Resources\DentistProviderResource\Pages\EditDentistProvider;
+use App\Filament\Resources\DentistProviderResource\Pages\ListDentistProviders;
 use App\Models\Provider;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -14,13 +16,17 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ViewField;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -288,7 +294,7 @@ class DentistProviderResource extends Resource
                 $query->where('type', 'dentists');
             })
             ->columns([
-                Tables\Columns\ImageColumn::make('photo')
+                ImageColumn::make('photo')
                     ->label('Photo')
                     ->getStateUsing(function (Provider $record): ?string {
                         $path = $record->meta['enhanced_photo_path'] ?? null;
@@ -310,12 +316,12 @@ class DentistProviderResource extends Resource
 
                         return url($path);
                     })
-                    ->size(60)
+                    ->imageSize(60)
                     ->circular()
                     ->defaultImageUrl(null)
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Name')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['title'] ?? 'Untitled')
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -323,7 +329,7 @@ class DentistProviderResource extends Resource
                     })
                     ->sortable()
                     ->limit(30),
-                Tables\Columns\TextColumn::make('business_name')
+                TextColumn::make('business_name')
                     ->label('Business')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['business_name'] ?? '')
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -332,7 +338,7 @@ class DentistProviderResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->limit(30),
-                Tables\Columns\TextColumn::make('specialty')
+                TextColumn::make('specialty')
                     ->label('Specialty')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['specialty'] ?? '')
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -341,7 +347,7 @@ class DentistProviderResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->limit(20),
-                Tables\Columns\IconColumn::make('has_image')
+                IconColumn::make('has_image')
                     ->label('Image')
                     ->boolean()
                     ->getStateUsing(function (Provider $record): bool {
@@ -362,7 +368,7 @@ class DentistProviderResource extends Resource
                     ->trueColor('success')
                     ->falseColor('gray')
                     ->toggleable(),
-                Tables\Columns\IconColumn::make('has_enhanced_profile')
+                IconColumn::make('has_enhanced_profile')
                     ->label('Enhanced Profile')
                     ->boolean()
                     ->getStateUsing(function (Provider $record): bool {
@@ -375,7 +381,7 @@ class DentistProviderResource extends Resource
                     ->trueColor('success')
                     ->falseColor('gray')
                     ->toggleable(),
-                Tables\Columns\IconColumn::make('has_address')
+                IconColumn::make('has_address')
                     ->label('Address')
                     ->boolean()
                     ->getStateUsing(function (Provider $record): bool {
@@ -391,7 +397,7 @@ class DentistProviderResource extends Resource
                     ->trueColor('success')
                     ->falseColor('gray')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('address')
+                TextColumn::make('address')
                     ->label('Location')
                     ->getStateUsing(function (Provider $record): string {
                         $street = $record->meta['address-street'] ?? '';
@@ -429,18 +435,18 @@ class DentistProviderResource extends Resource
                         return $address;
                     })
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('phone')
+                TextColumn::make('phone')
                     ->label('Phone')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['phone'] ?? '')
                     ->toggleable()
                     ->limit(15),
-                Tables\Columns\TextColumn::make('website')
+                TextColumn::make('website')
                     ->label('Website')
                     ->getStateUsing(fn (Provider $record): string => $record->meta['website'] ?? '')
                     ->toggleable()
                     ->limit(25)
                     ->url(fn (Provider $record): ?string => $record->meta['website'] ?? null),
-                Tables\Columns\IconColumn::make('best_of_washingtonian')
+                IconColumn::make('best_of_washingtonian')
                     ->label('Best of WA')
                     ->boolean()
                     ->getStateUsing(fn (Provider $record): bool => (bool) ($record->meta['best_of_washingtonian'] ?? false))
@@ -449,19 +455,19 @@ class DentistProviderResource extends Resource
                     ->trueColor('warning')
                     ->falseColor('gray')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
 
-                Tables\Filters\TernaryFilter::make('has_image')
+                TernaryFilter::make('has_image')
                     ->label('Has Image')
                     ->placeholder('All dentists')
                     ->trueLabel('With images')
@@ -477,7 +483,7 @@ class DentistProviderResource extends Resource
                         }),
                     ),
 
-                Tables\Filters\TernaryFilter::make('has_address')
+                TernaryFilter::make('has_address')
                     ->label('Has Address')
                     ->placeholder('All dentists')
                     ->trueLabel('With addresses')
@@ -501,7 +507,7 @@ class DentistProviderResource extends Resource
                         }),
                     ),
 
-                Tables\Filters\TernaryFilter::make('has_enhanced_profile')
+                TernaryFilter::make('has_enhanced_profile')
                     ->label('Has Enhanced Profile')
                     ->placeholder('All dentists')
                     ->trueLabel('With enhanced profile')
@@ -517,7 +523,7 @@ class DentistProviderResource extends Resource
                         }),
                     ),
 
-                Tables\Filters\TernaryFilter::make('has_awards')
+                TernaryFilter::make('has_awards')
                     ->label('Has Awards')
                     ->placeholder('All dentists')
                     ->trueLabel('With awards')
@@ -530,11 +536,11 @@ class DentistProviderResource extends Resource
                         }),
                     ),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
@@ -554,9 +560,9 @@ class DentistProviderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDentistProviders::route('/'),
-            'create' => Pages\CreateDentistProvider::route('/create'),
-            'edit' => Pages\EditDentistProvider::route('/{record}/edit'),
+            'index' => ListDentistProviders::route('/'),
+            'create' => CreateDentistProvider::route('/create'),
+            'edit' => EditDentistProvider::route('/{record}/edit'),
         ];
     }
 

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\RealtorProviderResource\Pages;
 
 use App\Filament\Resources\RealtorProviderResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditRealtorProvider extends EditRecord
@@ -13,7 +13,7 @@ class EditRealtorProvider extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

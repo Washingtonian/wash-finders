@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\WeddingVendorProviderResource\Pages;
 
 use App\Filament\Resources\WeddingVendorProviderResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditWeddingVendorProvider extends EditRecord
@@ -13,7 +13,7 @@ class EditWeddingVendorProvider extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

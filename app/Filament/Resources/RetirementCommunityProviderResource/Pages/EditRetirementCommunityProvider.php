@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\RetirementCommunityProviderResource\Pages;
 
 use App\Filament\Resources\RetirementCommunityProviderResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditRetirementCommunityProvider extends EditRecord
@@ -13,7 +13,7 @@ class EditRetirementCommunityProvider extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\MortgageProfessionalProviderResource\Pages;
 
 use App\Filament\Resources\MortgageProfessionalProviderResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditMortgageProfessionalProvider extends EditRecord
@@ -13,7 +13,7 @@ class EditMortgageProfessionalProvider extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }
