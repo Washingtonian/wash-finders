@@ -2,27 +2,40 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ImportResource\Pages;
+use App\Filament\Resources\ImportResource\Pages\CreateImport;
+use App\Filament\Resources\ImportResource\Pages\EditImport;
+use App\Filament\Resources\ImportResource\Pages\ImportHistoryPage;
+use App\Filament\Resources\ImportResource\Pages\ImportScheduling;
+use App\Filament\Resources\ImportResource\Pages\ListImports;
+use App\Filament\Resources\ImportResource\Pages\VersionHistory;
+use App\Filament\Resources\ImportResource\Pages\ViewImport;
 use App\Jobs\ProcessImportJob;
 use App\Models\Import;
 use App\Models\Provider;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Forms\Components\Actions\Set;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -50,7 +63,7 @@ class ImportResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
@@ -301,8 +314,8 @@ class ImportResource extends Resource
                     ]),
                 TrashedFilter::make(),
             ])
-            ->actions([
-                \Filament\Actions\Action::make('run_import')
+            ->recordActions([
+                Action::make('run_import')
                     ->label('Run Import')
                     ->icon('heroicon-o-play')
                     ->color('success')
@@ -318,7 +331,7 @@ class ImportResource extends Resource
                             'last_run_at' => now(),
                         ]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Import Started')
                             ->body("Import '{$record->name}' has been queued and will start processing shortly.")
                             ->success()
@@ -344,12 +357,12 @@ class ImportResource extends Resource
                     ->modalDescription('Are you sure you want to cancel the running import?')
                     ->modalSubmitActionLabel('Cancel Import'),
 
-                \Filament\Actions\ActionGroup::make([
-                    \Filament\Actions\ViewAction::make()
+                ActionGroup::make([
+                    ViewAction::make()
                         ->label('View Details'),
                     EditAction::make()
                         ->label('Edit Configuration'),
-                    \Filament\Actions\Action::make('view_versions')
+                    Action::make('view_versions')
                         ->label('View All Versions')
                         ->icon('heroicon-o-code-bracket')
                         ->color('info')
@@ -360,15 +373,15 @@ class ImportResource extends Resource
                                 ],
                             ]);
                         }),
-                    \Filament\Actions\Action::make('scheduling_options')
+                    Action::make('scheduling_options')
                         ->label('Scheduling Options')
                         ->icon('heroicon-o-clock')
                         ->url(fn (Import $record): string => route('filament.admin.resources.imports.scheduling', $record)),
-                    \Filament\Actions\Action::make('history_logs')
+                    Action::make('history_logs')
                         ->label('View History')
                         ->icon('heroicon-o-document-text')
                         ->url(fn (Import $record): string => route('filament.admin.resources.imports.history', $record)),
-                    \Filament\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->label('Delete Import'),
                 ])
                     ->label('More Actions')
@@ -377,8 +390,8 @@ class ImportResource extends Resource
                     ->color('gray')
                     ->button(),
             ])
-            ->bulkActions([
-                \Filament\Actions\BulkActionGroup::make([
+            ->toolbarActions([
+                BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
@@ -401,13 +414,13 @@ class ImportResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListImports::route('/'),
-            'create' => Pages\CreateImport::route('/create'),
-            'view' => Pages\ViewImport::route('/{record}'),
-            'edit' => Pages\EditImport::route('/{record}/edit'),
-            'scheduling' => Pages\ImportScheduling::route('/{record}/scheduling'),
-            'history' => Pages\ImportHistoryPage::route('/{record}/history'),
-            'version-history' => Pages\VersionHistory::route('/version-history'),
+            'index' => ListImports::route('/'),
+            'create' => CreateImport::route('/create'),
+            'view' => ViewImport::route('/{record}'),
+            'edit' => EditImport::route('/{record}/edit'),
+            'scheduling' => ImportScheduling::route('/{record}/scheduling'),
+            'history' => ImportHistoryPage::route('/{record}/history'),
+            'version-history' => VersionHistory::route('/version-history'),
         ];
     }
 
