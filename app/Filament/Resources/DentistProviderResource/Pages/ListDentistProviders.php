@@ -4,8 +4,11 @@ namespace App\Filament\Resources\DentistProviderResource\Pages;
 
 use App\Filament\Resources\DentistProviderResource;
 use App\Filament\Resources\DentistProviderResource\Widgets\DentistStatsWidget;
+use App\Jobs\ProcessImportJob;
 use App\Models\Import;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 
 class ListDentistProviders extends ListRecords
@@ -15,9 +18,9 @@ class ListDentistProviders extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
 
-            Actions\Action::make('run_dentists_import')
+            Action::make('run_dentists_import')
                 ->label('Run Dentists Import')
                 ->icon('heroicon-o-bolt')
                 ->color('primary')
@@ -25,7 +28,7 @@ class ListDentistProviders extends ListRecords
                     $import = Import::where('provider_type', 'dentists')->first();
 
                     if (! $import) {
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('No dentists import found')
                             ->danger()
                             ->send();
@@ -33,14 +36,14 @@ class ListDentistProviders extends ListRecords
                         return;
                     }
 
-                    \App\Jobs\ProcessImportJob::dispatch($import);
+                    ProcessImportJob::dispatch($import);
 
                     $import->update([
                         'last_run_status' => 'running',
                         'last_run_at' => now(),
                     ]);
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title('Dentists Import Started')
                         ->body('The dentists import has been queued and will start processing shortly.')
                         ->success()

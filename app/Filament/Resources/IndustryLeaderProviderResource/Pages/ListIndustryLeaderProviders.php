@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\IndustryLeaderProviderResource\Pages;
 
 use App\Filament\Resources\IndustryLeaderProviderResource;
+use App\Jobs\ProcessImportJob;
 use App\Models\Import;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 
 class ListIndustryLeaderProviders extends ListRecords
@@ -14,9 +17,9 @@ class ListIndustryLeaderProviders extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
 
-            Actions\Action::make('run_industry_leaders_import')
+            Action::make('run_industry_leaders_import')
                 ->label('Run Industry Leaders Import')
                 ->icon('heroicon-o-bolt')
                 ->color('primary')
@@ -24,7 +27,7 @@ class ListIndustryLeaderProviders extends ListRecords
                     $import = Import::where('provider_type', 'industry_leaders')->first();
 
                     if (! $import) {
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('No industry leaders import found')
                             ->danger()
                             ->send();
@@ -32,14 +35,14 @@ class ListIndustryLeaderProviders extends ListRecords
                         return;
                     }
 
-                    \App\Jobs\ProcessImportJob::dispatch($import);
+                    ProcessImportJob::dispatch($import);
 
                     $import->update([
                         'last_run_status' => 'running',
                         'last_run_at' => now(),
                     ]);
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title('Industry Leaders Import Started')
                         ->body('The industry leaders import has been queued and will start processing shortly.')
                         ->success()

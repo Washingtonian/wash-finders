@@ -5,9 +5,9 @@ namespace App\Filament\Resources\ImportResource\Pages;
 use App\Filament\Resources\ImportResource;
 use App\Jobs\ProcessImportJob;
 use App\Models\ImportHistory;
-use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ManageRelatedRecords;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ImportHistoryPage extends ManageRelatedRecords
@@ -20,33 +20,33 @@ class ImportHistoryPage extends ManageRelatedRecords
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('started_at')
+                TextColumn::make('started_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('completed_at')
+                TextColumn::make('completed_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->badge()
                     ->color(fn (ImportHistory $record): string => $record->status_badge_color),
-                Tables\Columns\TextColumn::make('duration')
+                TextColumn::make('duration')
                     ->getStateUsing(fn (ImportHistory $record): string => $record->duration ?? 'Running...'),
-                Tables\Columns\TextColumn::make('records_processed')
+                TextColumn::make('records_processed')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('records_created')
+                TextColumn::make('records_created')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('records_updated')
+                TextColumn::make('records_updated')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('records_skipped')
+                TextColumn::make('records_skipped')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('records_missing')
+                TextColumn::make('records_missing')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('error_message')
+                TextColumn::make('error_message')
                     ->limit(50)
                     ->color('danger')
                     ->visible(fn (ImportHistory $record): bool => ! empty($record->error_message)),
@@ -58,7 +58,7 @@ class ImportHistoryPage extends ManageRelatedRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('run_import')
+            Action::make('run_import')
                 ->label('Run Import Now')
                 ->icon('heroicon-o-play')
                 ->color('primary')

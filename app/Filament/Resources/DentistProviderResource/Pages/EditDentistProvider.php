@@ -5,7 +5,9 @@ namespace App\Filament\Resources\DentistProviderResource\Pages;
 use App\Filament\Resources\DentistProviderResource;
 use App\Jobs\ProcessSingleProviderJob;
 use App\Models\Import;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +18,7 @@ class EditDentistProvider extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('refresh_data')
+            Action::make('refresh_data')
                 ->label('Refresh Data')
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
@@ -27,7 +29,7 @@ class EditDentistProvider extends EditRecord
                 ->modalHeading('Refresh Dentist Data')
                 ->modalDescription('This will re-import data for this dentist from the CSV source. This may update photos, addresses, and other information.')
                 ->modalSubmitActionLabel('Refresh Data'),
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 
@@ -151,7 +153,7 @@ class EditDentistProvider extends EditRecord
             $import = Import::where('provider_type', 'dentists')->first();
 
             if (! $import) {
-                \Filament\Notifications\Notification::make()
+                Notification::make()
                     ->title('No dentists import found')
                     ->body('Please configure a dentists import first.')
                     ->danger()
@@ -163,7 +165,7 @@ class EditDentistProvider extends EditRecord
             // Dispatch the job to the queue
             ProcessSingleProviderJob::dispatch($providerId, $provider->id, 'dentists');
 
-            \Filament\Notifications\Notification::make()
+            Notification::make()
                 ->title('Refresh Job Queued')
                 ->body('The dentist data refresh has been queued and will start processing shortly.')
                 ->success()
@@ -181,7 +183,7 @@ class EditDentistProvider extends EditRecord
                 'error' => $e->getMessage(),
             ]);
 
-            \Filament\Notifications\Notification::make()
+            Notification::make()
                 ->title('Job Dispatch Failed')
                 ->body('Failed to queue the refresh job: '.$e->getMessage())
                 ->danger()

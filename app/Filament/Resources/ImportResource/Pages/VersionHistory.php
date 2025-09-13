@@ -4,9 +4,14 @@ namespace App\Filament\Resources\ImportResource\Pages;
 
 use App\Filament\Resources\ImportResource;
 use App\Models\Import;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class VersionHistory extends ListRecords
@@ -24,18 +29,18 @@ class VersionHistory extends ListRecords
                     ->orderBy('version', 'desc')
             )
             ->columns([
-                Tables\Columns\TextColumn::make('version')
+                TextColumn::make('version')
                     ->badge()
                     ->color(fn (Import $record): string => $record->is_current_version ? 'success' : 'gray')
                     ->formatStateUsing(fn (Import $record): string => $record->is_current_version ? "v{$record->version} (Current)" : "v{$record->version}")
                     ->sortable(),
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('csv_url')
+                TextColumn::make('csv_url')
                     ->label('CSV URL')
                     ->limit(60)
-                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
+                    ->tooltip(function (TextColumn $column): ?string {
                         $state = $column->getState();
                         if (strlen($state) > 60) {
                             return $state;
@@ -43,27 +48,27 @@ class VersionHistory extends ListRecords
 
                         return null;
                     }),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('last_run_at')
+                TextColumn::make('last_run_at')
                     ->dateTime()
                     ->sortable()
                     ->placeholder('Never run'),
-                Tables\Columns\TextColumn::make('last_run_status')
+                TextColumn::make('last_run_status')
                     ->badge()
                     ->color(fn (Import $record): string => $record->status_badge_color)
                     ->formatStateUsing(fn (Import $record): string => $record->status_label)
                     ->placeholder('Never run'),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
             ])
-            ->actions([
-                Filament\Actions\ViewAction::make(),
-                Filament\Actions\EditAction::make(),
-                Filament\Actions\Action::make('set_current')
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                Action::make('set_current')
                     ->label('Set as Current')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
@@ -73,12 +78,12 @@ class VersionHistory extends ListRecords
                     })
                     ->requiresConfirmation()
                     ->modalHeading('Set as Current Version')
-                    ->modalDescription("Are you sure you want to set version {$record->version} as the current version?")
+                    ->modalDescription(fn (Import $record): string => "Are you sure you want to set version {$record->version} as the current version?")
                     ->modalSubmitActionLabel('Set Current'),
             ])
-            ->bulkActions([
-                Filament\Actions\BulkActionGroup::make([
-                    Filament\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -86,7 +91,7 @@ class VersionHistory extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('back_to_imports')
+            Action::make('back_to_imports')
                 ->label('Back to All Imports')
                 ->icon('heroicon-o-arrow-left')
                 ->url(route('filament.admin.resources.imports.index')),
