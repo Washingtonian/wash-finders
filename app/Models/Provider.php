@@ -11,7 +11,7 @@ use Spatie\SchemalessAttributes\Casts\SchemalessAttributes;
 class Provider extends Model
 {
     use SoftDeletes;
-    // use Searchable;
+    use Searchable;
 
     protected $fillable = [
         'id',

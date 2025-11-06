@@ -90,7 +90,33 @@ class ImportResource extends Resource
                             ->required()
                             ->url()
                             ->placeholder('https://docs.google.com/spreadsheets/...')
-                            ->helperText('Google Sheets URL or direct CSV download link'),
+                            ->helperText('Google Sheets URL or direct CSV download link')
+                            ->suffixAction(
+                                \Filament\Forms\Components\Actions\Action::make('copy')
+                                    ->icon('heroicon-o-clipboard')
+                                    ->tooltip('Copy URL to clipboard')
+                                    ->action(function ($get, $set) {
+                                        $url = $get('csv_url');
+                                        if ($url) {
+                                            // Copy to clipboard using JavaScript
+                                            $this->js("
+                                                navigator.clipboard.writeText('{$url}').then(() => {
+                                                    \$wireui.notify({
+                                                        title: 'URL Copied',
+                                                        description: 'The CSV URL has been copied to your clipboard.',
+                                                        icon: 'success'
+                                                    });
+                                                });
+                                            ");
+                                            
+                                            Notification::make()
+                                                ->title('URL Copied')
+                                                ->body('The CSV URL has been copied to your clipboard.')
+                                                ->success()
+                                                ->send();
+                                        }
+                                    })
+                            ),
                         TextInput::make('version')
                             ->required()
                             ->default('1.0')
