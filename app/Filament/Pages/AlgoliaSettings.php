@@ -122,32 +122,20 @@ class AlgoliaSettings extends Page implements HasForms
 
         // Note: This page is for viewing and reference only
         // Actual configuration should be done via .env file
-        Notification::make()
-            ->title('Configuration Information')
-            ->body('To update Algolia settings, please edit your .env file with the following values:')
-            ->info()
-            ->persistent()
-            ->actions([
-                \Filament\Notifications\Actions\Action::make('view_env')
-                    ->label('View .env Instructions')
-                    ->action(function () {
-                        $instructions = "Add or update these values in your .env file:\n\n";
-                        $instructions .= "SCOUT_DRIVER={$data['scout_driver']}\n";
-                        $instructions .= "SCOUT_PREFIX={$data['scout_prefix']}\n";
-                        $instructions .= "SCOUT_QUEUE=" . ($data['scout_queue'] ? 'true' : 'false') . "\n";
-                        $instructions .= "SCOUT_IDENTIFY=" . ($data['scout_identify'] ? 'true' : 'false') . "\n";
-                        $instructions .= "ALGOLIA_APP_ID={$data['algolia_app_id']}\n";
-                        $instructions .= "ALGOLIA_SECRET={$data['algolia_secret']}\n\n";
-                        $instructions .= "After updating, run: php artisan config:clear";
+        $instructions = "Add or update these values in your .env file:\n\n";
+        $instructions .= "SCOUT_DRIVER={$data['scout_driver']}\n";
+        $instructions .= "SCOUT_PREFIX={$data['scout_prefix']}\n";
+        $instructions .= "SCOUT_QUEUE=" . ($data['scout_queue'] ? 'true' : 'false') . "\n";
+        $instructions .= "SCOUT_IDENTIFY=" . ($data['scout_identify'] ? 'true' : 'false') . "\n";
+        $instructions .= "ALGOLIA_APP_ID={$data['algolia_app_id']}\n";
+        $instructions .= "ALGOLIA_SECRET={$data['algolia_secret']}\n\n";
+        $instructions .= "After updating, run: php artisan config:clear";
 
-                        Notification::make()
-                            ->title('Environment Variables')
-                            ->body($instructions)
-                            ->success()
-                            ->persistent()
-                            ->send();
-                    }),
-            ])
+        Notification::make()
+            ->title('Environment Variables')
+            ->body($instructions)
+            ->success()
+            ->persistent()
             ->send();
     }
 

@@ -250,16 +250,12 @@ class DataManagement extends Page implements HasForms
                 fclose($fp);
             }
 
+            $downloadUrl = route('admin.data-management.download', ['file' => $filename]);
+            
             Notification::make()
                 ->title('Export Successful')
-                ->body("Data exported successfully. {$providers->count()} providers exported.")
+                ->body("Data exported successfully. {$providers->count()} providers exported. <a href=\"{$downloadUrl}\" target=\"_blank\" class=\"underline font-semibold\">Download File</a>")
                 ->success()
-                ->actions([
-                    \Filament\Notifications\Actions\Action::make('download')
-                        ->label('Download File')
-                        ->url('/admin/data-management/download/'.$filename)
-                        ->openUrlInNewTab(),
-                ])
                 ->send();
 
         } catch (\Exception $e) {
