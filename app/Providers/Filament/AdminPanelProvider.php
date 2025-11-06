@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->registration(\App\Filament\Pages\CustomRegister::class)
+            ->registration(\App\Filament\Pages\Register::class)
             ->brandName('Wash Finders Admin')
             ->colors([
                 'primary' => Color::Blue,

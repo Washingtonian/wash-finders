@@ -7,7 +7,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Illuminate\Validation\ValidationException;
 
-class CustomRegister extends BaseRegister
+class Register extends BaseRegister
 {
     public function form(Schema $schema): Schema
     {
