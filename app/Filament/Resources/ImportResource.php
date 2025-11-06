@@ -95,20 +95,9 @@ class ImportResource extends Resource
                                 \Filament\Forms\Components\Actions\Action::make('copy')
                                     ->icon('heroicon-o-clipboard')
                                     ->tooltip('Copy URL to clipboard')
-                                    ->action(function ($get, $set) {
+                                    ->action(function ($get) {
                                         $url = $get('csv_url');
                                         if ($url) {
-                                            // Copy to clipboard using JavaScript
-                                            $this->js("
-                                                navigator.clipboard.writeText('{$url}').then(() => {
-                                                    \$wireui.notify({
-                                                        title: 'URL Copied',
-                                                        description: 'The CSV URL has been copied to your clipboard.',
-                                                        icon: 'success'
-                                                    });
-                                                });
-                                            ");
-                                            
                                             Notification::make()
                                                 ->title('URL Copied')
                                                 ->body('The CSV URL has been copied to your clipboard.')
@@ -116,6 +105,9 @@ class ImportResource extends Resource
                                                 ->send();
                                         }
                                     })
+                                    ->extraAttributes([
+                                        'x-on:click' => 'event.preventDefault(); const input = $el.closest(\'[wire\\:id]\').querySelector(\'input[type="url"]\'); if (input) { navigator.clipboard.writeText(input.value).then(() => { $dispatch(\'notify\', { type: \'success\', message: \'URL copied to clipboard\' }) }) }',
+                                    ])
                             ),
                         TextInput::make('version')
                             ->required()
