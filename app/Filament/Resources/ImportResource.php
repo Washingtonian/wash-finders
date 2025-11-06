@@ -91,24 +91,12 @@ class ImportResource extends Resource
                             ->url()
                             ->placeholder('https://docs.google.com/spreadsheets/...')
                             ->helperText('Google Sheets URL or direct CSV download link')
-                            ->suffixAction(
-                                \Filament\Forms\Components\Actions\Action::make('copy')
-                                    ->icon('heroicon-o-clipboard')
-                                    ->tooltip('Copy URL to clipboard')
-                                    ->action(function ($get) {
-                                        $url = $get('csv_url');
-                                        if ($url) {
-                                            Notification::make()
-                                                ->title('URL Copied')
-                                                ->body('The CSV URL has been copied to your clipboard.')
-                                                ->success()
-                                                ->send();
-                                        }
-                                    })
-                                    ->extraAttributes([
-                                        'x-on:click' => 'event.preventDefault(); const input = $el.closest(\'[wire\\:id]\').querySelector(\'input[type="url"]\'); if (input) { navigator.clipboard.writeText(input.value).then(() => { $dispatch(\'notify\', { type: \'success\', message: \'URL copied to clipboard\' }) }) }',
-                                    ])
-                            ),
+                            ->suffixIcon('heroicon-o-clipboard')
+                            ->suffixIconColor('gray')
+                            ->extraAttributes([
+                                'x-data' => '{}',
+                                'x-on:click.suffix' => 'navigator.clipboard.writeText($el.closest(\'[wire\\:id]\').querySelector(\'input\').value).then(() => { $dispatch(\'notify\', { type: \'success\', message: \'URL copied\' }) })',
+                            ]),
                         TextInput::make('version')
                             ->required()
                             ->default('1.0')
