@@ -9,6 +9,7 @@
         "algolia/algoliasearch-client-php": "^4.28",
         "filament/filament": "^4.0",
         "laravel/framework": "^12.0",
+        "laravel/horizon": "^5.39",
         "laravel/scout": "^10.0",
         "laravel/tinker": "^3.0",
         "league/csv": "^9.0",

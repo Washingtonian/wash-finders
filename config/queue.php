@@ -11,6 +11,9 @@ return [
     | API, giving you convenient access to each backend using identical
     | syntax for each. The default queue connection is defined below.
     |
+    | Note: Laravel Horizon requires Redis as the queue connection.
+    | Set QUEUE_CONNECTION=redis in your .env file to use Horizon.
+    |
     */
 
     'default' => env('QUEUE_CONNECTION', 'database'),
