@@ -3,14 +3,13 @@
 namespace App\Filament\Pages;
 
 use BackedEnum;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Actions\Action;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use UnitEnum;
@@ -125,11 +124,11 @@ class AlgoliaSettings extends Page implements HasForms
         $instructions = "Add or update these values in your .env file:\n\n";
         $instructions .= "SCOUT_DRIVER={$data['scout_driver']}\n";
         $instructions .= "SCOUT_PREFIX={$data['scout_prefix']}\n";
-        $instructions .= "SCOUT_QUEUE=" . ($data['scout_queue'] ? 'true' : 'false') . "\n";
-        $instructions .= "SCOUT_IDENTIFY=" . ($data['scout_identify'] ? 'true' : 'false') . "\n";
+        $instructions .= 'SCOUT_QUEUE='.($data['scout_queue'] ? 'true' : 'false')."\n";
+        $instructions .= 'SCOUT_IDENTIFY='.($data['scout_identify'] ? 'true' : 'false')."\n";
         $instructions .= "ALGOLIA_APP_ID={$data['algolia_app_id']}\n";
         $instructions .= "ALGOLIA_SECRET={$data['algolia_secret']}\n\n";
-        $instructions .= "After updating, run: php artisan config:clear";
+        $instructions .= 'After updating, run: php artisan config:clear';
 
         Notification::make()
             ->title('Environment Variables')
@@ -138,14 +137,4 @@ class AlgoliaSettings extends Page implements HasForms
             ->persistent()
             ->send();
     }
-
-    protected function getFormActions(): array
-    {
-        return [
-            Action::make('save')
-                ->label('View Configuration Instructions')
-                ->submit('save'),
-        ];
-    }
 }
-

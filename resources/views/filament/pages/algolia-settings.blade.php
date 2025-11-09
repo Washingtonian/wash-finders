@@ -1,14 +1,16 @@
-<x-filament-panels::page>
+<x-filament::page>
     <form wire:submit="save">
         {{ $this->form }}
 
-        <x-filament-panels::form.actions
-            :actions="$this->getCachedFormActions()"
-        />
+        <div class="mt-6 flex justify-end">
+            <x-filament::button type="submit">
+                View Configuration Instructions
+            </x-filament::button>
+        </div>
     </form>
 
-    <x-filament-panels::page.section>
-        <div class="rounded-lg bg-gray-50 dark:bg-gray-800 p-6">
+    <x-filament::section>
+        <div class="space-y-4">
             <h3 class="text-lg font-semibold mb-4">How to Update Algolia Settings</h3>
             <div class="space-y-4 text-sm text-gray-600 dark:text-gray-400">
                 <p>
@@ -35,6 +37,6 @@
                 </p>
             </div>
         </div>
-    </x-filament-panels::page.section>
-</x-filament-panels::page>
+    </x-filament::section>
+</x-filament::page>
 
