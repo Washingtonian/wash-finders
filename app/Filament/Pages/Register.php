@@ -9,6 +9,8 @@ use Illuminate\Validation\ValidationException;
 
 class Register extends BaseRegister
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     public function form(Schema $schema): Schema
     {
         return parent::form($schema)

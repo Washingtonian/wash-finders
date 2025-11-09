@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProviderResource\Pages;
 use App\Jobs\ProcessImportJob;
+use App\Jobs\ResetProvidersJob;
 use App\Models\Import;
 use App\Models\Provider;
 use BackedEnum;
@@ -384,6 +385,56 @@ class ProviderResource extends Resource
                                 ->count() > 0;
                         }
                     }),
+
+                Action::make('reset_and_resync')
+                    ->label('Reset & Resync')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('danger')
+                    ->schema([
+                        Select::make('provider_type')
+                            ->label('Provider Type')
+                            ->options(function () {
+                                return collect(['all' => 'All Provider Types'])
+                                    ->merge(Provider::getAvailableTypes())
+                                    ->toArray();
+                            })
+                            ->default(fn () => request()->get('type') ?? 'all')
+                            ->required(),
+                        Toggle::make('confirm_reset')
+                            ->label('I understand this will permanently delete existing providers before importing fresh data.')
+                            ->helperText('All providers for the selected type will be deleted before the spreadsheet is re-imported.')
+                            ->default(false),
+                    ])
+                    ->action(function (array $data) {
+                        if (! ($data['confirm_reset'] ?? false)) {
+                            Notification::make()
+                                ->title('Reset not confirmed')
+                                ->body('Please confirm the reset before continuing.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
+                        $type = $data['provider_type'] ?? 'all';
+
+                        ResetProvidersJob::dispatch($type === 'all' ? null : $type);
+
+                        $label = $type === 'all'
+                            ? 'all provider types'
+                            : Provider::getTypeLabel($type);
+
+                        Notification::make()
+                            ->title('Reset queued')
+                            ->body("A reset and resync job has been queued for {$label}.")
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Reset Providers & Resync')
+                    ->modalDescription('This will permanently delete the selected providers and queue a fresh import from the spreadsheet.')
+                    ->modalSubmitActionLabel('Queue Reset')
+                    ->visible(fn () => Import::count() > 0 || ! empty(config('providers'))),
             ])
             ->columns([
                 TextColumn::make('id')
