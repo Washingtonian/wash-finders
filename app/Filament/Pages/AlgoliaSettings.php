@@ -3,16 +3,16 @@
 namespace App\Filament\Pages;
 
 use BackedEnum;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use UnitEnum;
 
 class AlgoliaSettings extends Page implements HasForms
@@ -45,7 +45,7 @@ class AlgoliaSettings extends Page implements HasForms
         ]);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $form): Schema
     {
         return $form
             ->schema([
